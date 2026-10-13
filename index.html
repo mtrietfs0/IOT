@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Home & Security Hub</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.7);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-[#070913] text-slate-100 min-h-screen flex flex-col p-6">
+
+  <!-- Status Bar -->
+  <header class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-800">
+    <div class="flex items-center gap-3">
+      <div class="p-2.5 bg-blue-500/10 border border-blue-500/30 rounded-xl text-cyan-400">
+        <i data-lucide="shield-check" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-white">Smart Home & Security Hub</h1>
+        <p class="text-xs text-slate-400">Arduino Serial Control & Monitoring Platform</p>
+      </div>
+    </div>
+
+    <!-- Hardware & Cloud Status -->
+    <div class="flex items-center gap-3 text-xs font-medium">
+      <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300">
+        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+        <span>Mạch: Chưa kết nối</span>
+      </div>
+      <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400">
+        <span id="firebase-dot" class="w-2 h-2 rounded-full bg-slate-500"></span>
+        <span id="firebase-text">Firebase: Ngoại tuyến</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Grid -->
+  <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 my-6 flex-1">
+    
+    <!-- 1. Access Control (Servo) -->
+    <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
+      <div class="flex items-center justify-between text-slate-400">
+        <span class="text-sm font-semibold text-slate-300">Kiểm soát ra vào</span>
+        <i data-lucide="door-closed" class="w-5 h-5 text-cyan-400"></i>
+      </div>
+      <div class="my-4">
+        <div id="door-status" class="text-2xl font-bold text-white tracking-tight">Cửa Đóng (0°)</div>
+        <p class="text-xs text-slate-400 mt-1">Ghi nhận: 15 phút trước</p>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button class="py-2 px-3 text-xs font-semibold rounded-lg bg-cyan-600/20 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-600/30 transition">
+          Mở (90°)
+        </button>
+        <button class="py-2 px-3 text-xs font-semibold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition">
+          Đóng (0°)
+        </button>
+      </div>
+    </div>
+
+    <!-- 2. Environmental Monitor -->
+    <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
+      <div class="flex items-center justify-between text-slate-400">
+        <span class="text-sm font-semibold text-slate-300">Nhiệt độ & Ánh sáng</span>
+        <i data-lucide="thermometer" class="w-5 h-5 text-amber-400"></i>
+      </div>
+      <div class="my-4 space-y-2">
+        <div class="flex items-baseline justify-between">
+          <span class="text-xs text-slate-400">Nhiệt độ:</span>
+          <span id="temp-value" class="text-lg font-bold text-slate-200">28.5°C <span class="text-xs font-normal text-slate-400">(Bình thường)</span></span>
+        </div>
+        <div class="flex items-baseline justify-between">
+          <span class="text-xs text-slate-400">Quang trở (LDR):</span>
+          <span id="light-value" class="text-lg font-bold text-slate-200">65%</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Dữ liệu lưu lần cuối lúc 15:40</p>
+      </div>
+      <div class="text-xs px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-center font-medium">
+        Ngưỡng an toàn (< 50°C)
+      </div>
+    </div>
+
+    <!-- 3. Intrusion Alert (HC-SR04) -->
+    <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
+      <div class="flex items-center justify-between text-slate-400">
+        <span class="text-sm font-semibold text-slate-300">An ninh chống trộm</span>
+        <i data-lucide="radar" class="w-5 h-5 text-cyan-400"></i>
+      </div>
+      <div class="my-4">
+        <div id="alarm-status" class="text-2xl font-bold text-slate-200 tracking-tight">Chưa kích hoạt</div>
+        <p class="text-xs text-slate-400 mt-1">Cảm biến siêu âm: Đang chờ tín hiệu</p>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <button class="py-2 px-3 text-xs font-semibold rounded-lg bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30 transition">
+          Bật bảo vệ
+        </button>
+        <button class="py-2 px-3 text-xs font-semibold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition">
+          Tắt bảo vệ
+        </button>
+      </div>
+    </div>
+
+    <!-- 4. Smart Lighting Control -->
+    <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
+      <div class="flex items-center justify-between text-slate-400">
+        <span class="text-sm font-semibold text-slate-300">Chiếu sáng thông minh</span>
+        <i data-lucide="lightbulb" class="w-5 h-5 text-yellow-400"></i>
+      </div>
+      <div class="my-4">
+        <div id="light-mode-status" class="text-2xl font-bold text-white tracking-tight">Chế độ: Tự động</div>
+        <p class="text-xs text-slate-400 mt-1">Đèn: Đang tắt (Ánh sáng > 30%)</p>
+      </div>
+      <div class="grid grid-cols-3 gap-1.5">
+        <button class="py-2 text-[11px] font-semibold rounded-lg bg-cyan-600/20 border border-cyan-500/40 text-cyan-300">
+          Auto
+        </button>
+        <button class="py-2 text-[11px] font-semibold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700">
+          Bật
+        </button>
+        <button class="py-2 text-[11px] font-semibold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700">
+          Tắt
+        </button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Bottom Log & Telemetry Preview -->
+  <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+    <!-- Activity Log -->
+    <div class="lg:col-span-2 glass-card rounded-2xl p-5">
+      <h3 class="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
+        <i data-lucide="clock-3" class="w-4 h-4 text-cyan-400"></i>
+        Nhật ký hệ thống gần nhất
+      </h3>
+      <div class="space-y-2.5 text-xs">
+        <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/40 border border-slate-800">
+          <span class="text-slate-300">Đã ngắt kết nối cổng Serial với vi điều khiển</span>
+          <span class="text-slate-500">15:40:12</span>
+        </div>
+        <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/40 border border-slate-800">
+          <span class="text-slate-300">Đèn tự động tắt do cường độ ánh sáng đạt 65%</span>
+          <span class="text-slate-500">15:38:05</span>
+        </div>
+        <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/40 border border-slate-800">
+          <span class="text-slate-300">Nhiệt độ phòng ổn định ở mức 28.5°C</span>
+          <span class="text-slate-500">15:35:20</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Raw Data Payload Preview -->
+    <div class="glass-card rounded-2xl p-5">
+      <h3 class="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
+        <i data-lucide="terminal" class="w-4 h-4 text-slate-400"></i>
+        Cấu trúc JSON (Chờ nhận)
+      </h3>
+      <pre id="json-preview" class="bg-slate-950/70 p-3 rounded-lg border border-slate-800/80 text-[11px] text-cyan-300 font-mono overflow-x-auto leading-relaxed">
+{
+  "temp": 28.5,
+  "light": 65,
+  "door": "CLOSED",
+  "alarmArmed": 0,
+  "lightMode": "AUTO"
+}</pre>
+    </div>
+  </section>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    // Cấu hình Firebase của bạn
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      databaseURL: "https://YOUR_DATABASE_NAME.firebaseio.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Cập nhật trạng thái Firebase thành "Đã kết nối" trên thanh phía trên
+    const fbDot = document.getElementById('firebase-dot');
+    const fbText = document.getElementById('firebase-text');
+    if (fbDot && fbText) {
+      fbDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+      fbText.parentElement.className = "flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-medium";
+      fbText.textContent = "Firebase: Đã kết nối";
+    }
+
+    // Lắng nghe dữ liệu realtime từ Firebase
+    const dbRef = ref(db, '/smart_home');
+    onValue(dbRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data) {
+        if (data.temp !== undefined) {
+          document.getElementById('temp-value').innerHTML = `${data.temp}°C <span class="text-xs font-normal text-slate-400">(Trực tuyến)</span>`;
+        }
+        if (data.light !== undefined) {
+          document.getElementById('light-value').textContent = `${data.light}%`;
+        }
+        if (data.door !== undefined) {
+          document.getElementById('door-status').textContent = data.door === "OPEN" ? "Cửa Mở (90°)" : "Cửa Đóng (0°)";
+        }
+        if (data.alarmArmed !== undefined) {
+          document.getElementById('alarm-status').textContent = data.alarmArmed == 1 ? "Đang bảo vệ" : "Chưa kích hoạt";
+        }
+        if (data.lightMode !== undefined) {
+          document.getElementById('light-mode-status').textContent = `Chế độ: ${data.lightMode}`;
+        }
+        const jsonPreview = document.getElementById('json-preview');
+        if (jsonPreview) {
+          jsonPreview.textContent = JSON.stringify(data, null, 2);
+        }
+      }
+    });
+
+    lucide.createIcons();
+  </script>
+</body>
+</html>
