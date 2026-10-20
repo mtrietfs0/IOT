@@ -1,133 +1,159 @@
 <!DOCTYPE html>
-<html lang="vi">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Home & Security Hub</title>
+  <title>Smart Home & Security Hub - 3D Interactive</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
     .glass-card {
-      background: rgba(15, 23, 42, 0.7);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(51, 65, 85, 0.5);
+      background: rgba(18, 20, 38, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.5);
+    }
+    .glass-panel {
+      background: rgba(11, 13, 27, 0.95);
+      backdrop-filter: blur(20px);
+      border-left: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    @keyframes sonar {
+      0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.5); }
+      70% { transform: scale(1.02); box-shadow: 0 0 0 6px rgba(14, 165, 233, 0); }
+      100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+    }
+    .btn-hotspot {
+      animation: sonar 2.5s infinite ease-in-out;
+    }
+    /* Hiệu ứng ánh sáng động theo giờ trong ngày */
+    .lighting-morning {
+      filter: brightness(1.05) contrast(1.05) saturate(1.1);
+      transition: filter 1.5s ease-in-out;
+    }
+    .lighting-noon {
+      filter: brightness(1.2) contrast(1.1) saturate(1.25) sepia(0.15);
+      transition: filter 1.5s ease-in-out;
+    }
+    .lighting-evening {
+      filter: brightness(0.4) contrast(1.35) saturate(0.85) sepia(0.4) hue-rotate(185deg);
+      transition: filter 1.5s ease-in-out;
     }
   </style>
 </head>
-<body class="bg-[#070913] text-slate-100 min-h-screen flex flex-col p-6">
+<body class="bg-[#070913] text-slate-100 min-h-screen flex flex-col p-6 relative overflow-x-hidden">
 
   <!-- Status Bar -->
-  <header class="flex flex-wrap items-center justify-between gap-4 pb-6 border-b border-slate-800">
+  <header class="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-slate-800">
     <div class="flex items-center gap-3">
-      <div class="p-2.5 bg-blue-500/10 border border-blue-500/30 rounded-xl text-cyan-400">
+      <div class="p-2.5 bg-sky-500/10 border border-sky-500/30 rounded-xl text-sky-400">
         <i data-lucide="shield-check" class="w-6 h-6"></i>
       </div>
       <div>
-        <h1 class="text-xl font-bold tracking-tight text-white">Smart Home & Security Hub</h1>
-        <p class="text-xs text-slate-400">Arduino Serial Control & Monitoring Platform</p>
+        <h1 id="header-main-title" class="text-xl font-bold tracking-tight text-white">Smart Home & Security Hub</h1>
+        <p id="header-sub-title" class="text-xs text-slate-400">Arduino Serial Control & Monitoring Platform</p>
       </div>
     </div>
 
-    <!-- Hardware & Cloud Status -->
+    <!-- Hardware & Cloud Status + Language Switcher -->
     <div class="flex items-center gap-3 text-xs font-medium">
       <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300">
         <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-        <span>Mạch: Chưa kết nối</span>
+        <span id="hw-status-text">Hardware: Disconnected</span>
       </div>
-      <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400">
-        <span id="firebase-dot" class="w-2 h-2 rounded-full bg-slate-500"></span>
-        <span id="firebase-text">Firebase: Ngoại tuyến</span>
+      <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-700 text-sky-300">
+        <span id="firebase-dot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="fb-status-text">Firebase: Connected</span>
       </div>
+      <button onclick="toggleLanguage()" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-sky-600/20 border border-sky-500/40 text-sky-300 hover:bg-sky-600/30 transition font-semibold">
+        <i data-lucide="languages" class="w-3.5 h-3.5"></i>
+        <span id="lang-btn-text">VI / EN</span>
+      </button>
     </div>
   </header>
 
-  <!-- Main Grid -->
-  <main class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5 my-6 flex-1">
+  <!-- Main Center Grid -->
+  <main class="grid grid-cols-1 lg:grid-cols-3 gap-6 my-6 flex-1">
     
-    <!-- 1. Access Control (Servo) -->
-    <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
-      <div class="flex items-center justify-between text-slate-400">
-        <span class="text-sm font-semibold text-slate-300">Kiểm soát ra vào</span>
-        <i data-lucide="door-closed" class="w-5 h-5 text-cyan-400"></i>
-      </div>
-      <div class="my-4">
-        <div id="door-status" class="text-2xl font-bold text-white tracking-tight">Cửa Đóng (0°)</div>
-        <p class="text-xs text-slate-400 mt-1">Ghi nhận: 15 phút trước</p>
-      </div>
-      <div class="grid grid-cols-2 gap-2">
-        <button class="py-2 px-3 text-xs font-semibold rounded-lg bg-cyan-600/20 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-600/30 transition">
-          Mở (90°)
-        </button>
-        <button class="py-2 px-3 text-xs font-semibold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition">
-          Đóng (0°)
-        </button>
-      </div>
-    </div>
-
-    <!-- 2. Environmental Monitor -->
-    <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
-      <div class="flex items-center justify-between text-slate-400">
-        <span class="text-sm font-semibold text-slate-300">Nhiệt độ & Ánh sáng</span>
-        <i data-lucide="thermometer" class="w-5 h-5 text-amber-400"></i>
-      </div>
-      <div class="my-4 space-y-2">
-        <div class="flex items-baseline justify-between">
-          <span class="text-xs text-slate-400">Nhiệt độ:</span>
-          <span id="temp-value" class="text-lg font-bold text-slate-200">28.5°C <span class="text-xs font-normal text-slate-400">(Bình thường)</span></span>
+    <!-- KHUNG MẶT BẰNG 3D NHÀ THÔNG MINH -->
+    <div class="lg:col-span-2 glass-card rounded-2xl p-5 relative flex flex-col justify-between overflow-hidden min-h-[480px]">
+      
+      <div class="flex items-center justify-between mb-3 z-10 px-1">
+        <h2 id="model-title" class="text-sm font-semibold text-slate-200">3D Smart House Spatial Model</h2>
+        <div class="flex items-center gap-2">
+          <button onclick="forceCycleLighting()" title="Click to test lighting modes" class="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-[11px] text-sky-300 border border-slate-700 transition">
+            <span id="test-light-btn">Test Light: Auto</span>
+          </button>
+          <span id="model-badge" class="px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/30 text-xs text-sky-300 font-medium">3D Interactive</span>
         </div>
-        <div class="flex items-baseline justify-between">
-          <span class="text-xs text-slate-400">Quang trở (LDR):</span>
-          <span id="light-value" class="text-lg font-bold text-slate-200">65%</span>
+      </div>
+
+      <!-- Vùng chứa ảnh toàn cảnh ngôi nhà góc rộng rõ nét -->
+      <div class="relative flex-1 rounded-xl bg-[#0b0e17] border border-slate-800 flex items-center justify-center p-2 my-1 overflow-hidden">
+        
+        <!-- Ảnh toàn cảnh ngôi nhà 2 tầng hiện đại -->
+        <div id="house-bg" class="absolute inset-0 bg-cover bg-center rounded-xl pointer-events-none lighting-morning" style="background-image: url('https://images.unsplash.com/photo-1613977257363-707ba9348227?q=80&w=1400&auto=format&fit=crop');"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#070913]/80 via-transparent to-[#070913]/20 rounded-xl"></div>
+
+        <!-- 1. CỬA RA VÀO (SERVO) - Đặt tại Cửa chính tầng 1 -->
+        <button onclick="openPanel('door')" class="absolute bottom-10 left-[28%] transform -translate-x-1/2 flex items-center gap-2 px-3.5 py-2 rounded-full bg-sky-950/90 border-2 border-sky-400 text-sky-200 text-xs font-semibold btn-hotspot hover:bg-sky-900 transition shadow-2xl z-20 focus:outline-none">
+          <i data-lucide="door-closed" class="w-4 h-4 text-sky-300"></i> <span id="btn-door-label">Access Control (Servo)</span>
+        </button>
+
+        <!-- 2. MÔI TRƯỜNG & LDR - Đặt tại Mảng tường Tầng 2 -->
+        <button onclick="openPanel('env')" class="absolute top-[28%] left-[32%] transform -translate-x-1/2 flex items-center gap-2 px-3.5 py-2 rounded-full bg-amber-950/90 border-2 border-amber-400 text-amber-200 text-xs font-semibold btn-hotspot hover:bg-amber-900 transition shadow-2xl z-20 focus:outline-none">
+          <i data-lucide="thermometer" class="w-4 h-4 text-amber-300"></i> <span id="btn-env-label">Environment & LDR</span>
+        </button>
+
+        <!-- 3. CHIẾU SÁNG AUTO - Đặt tại Trần / Không gian Phòng khách tầng 1 -->
+        <button onclick="openPanel('light')" class="absolute top-[52%] right-[25%] flex items-center gap-2 px-3.5 py-2 rounded-full bg-yellow-950/90 border-2 border-yellow-400 text-yellow-200 text-xs font-semibold btn-hotspot hover:bg-yellow-900 transition shadow-2xl z-20 focus:outline-none">
+          <i data-lucide="lightbulb" class="w-4 h-4 text-yellow-300"></i> <span id="btn-light-label">Smart Lighting (Auto)</span>
+        </button>
+
+        <!-- 4. CẢM BIẾN SIÊU ÂM - Đặt tại Mép mái/Mái hiên bảo vệ góc bên phải -->
+        <button onclick="openPanel('alarm')" class="absolute top-[18%] right-[10%] flex items-center gap-2 px-3.5 py-2 rounded-full bg-red-950/90 border-2 border-red-400 text-red-200 text-xs font-semibold btn-hotspot hover:bg-red-900 transition shadow-2xl z-20 focus:outline-none">
+          <i data-lucide="radar" class="w-4 h-4 text-red-300"></i> <span id="btn-alarm-label">Ultrasonic Intrusion Sensor</span>
+        </button>
+
+      </div>
+
+      <!-- Khung thời gian thực góc trái & Trạng thái -->
+      <div class="flex items-center justify-between text-xs text-slate-400 z-10 pt-2 px-1">
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
+          <span id="realtime-clock" class="font-mono text-sky-300 font-medium">--:--:--</span>
+          <span id="time-mode-badge" class="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300">Morning</span>
         </div>
-        <p class="text-[11px] text-slate-400">Dữ liệu lưu lần cuối lúc 15:40</p>
-      </div>
-      <div class="text-xs px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-center font-medium">
-        Ngưỡng an toàn (< 50°C)
+        <span class="text-sky-400">4 Zones Connected</span>
       </div>
     </div>
 
-    <!-- 3. Intrusion Alert (HC-SR04) -->
-    <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
-      <div class="flex items-center justify-between text-slate-400">
-        <span class="text-sm font-semibold text-slate-300">An ninh chống trộm</span>
-        <i data-lucide="radar" class="w-5 h-5 text-cyan-400"></i>
-      </div>
-      <div class="my-4">
-        <div id="alarm-status" class="text-2xl font-bold text-slate-200 tracking-tight">Chưa kích hoạt</div>
-        <p class="text-xs text-slate-400 mt-1">Cảm biến siêu âm: Đang chờ tín hiệu</p>
-      </div>
-      <div class="grid grid-cols-2 gap-2">
-        <button class="py-2 px-3 text-xs font-semibold rounded-lg bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30 transition">
-          Bật bảo vệ
-        </button>
-        <button class="py-2 px-3 text-xs font-semibold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition">
-          Tắt bảo vệ
-        </button>
-      </div>
-    </div>
-
-    <!-- 4. Smart Lighting Control -->
-    <div class="glass-card rounded-2xl p-5 flex flex-col justify-between">
-      <div class="flex items-center justify-between text-slate-400">
-        <span class="text-sm font-semibold text-slate-300">Chiếu sáng thông minh</span>
-        <i data-lucide="lightbulb" class="w-5 h-5 text-yellow-400"></i>
-      </div>
-      <div class="my-4">
-        <div id="light-mode-status" class="text-2xl font-bold text-white tracking-tight">Chế độ: Tự động</div>
-        <p class="text-xs text-slate-400 mt-1">Đèn: Đang tắt (Ánh sáng > 30%)</p>
-      </div>
-      <div class="grid grid-cols-3 gap-1.5">
-        <button class="py-2 text-[11px] font-semibold rounded-lg bg-cyan-600/20 border border-cyan-500/40 text-cyan-300">
-          Auto
-        </button>
-        <button class="py-2 text-[11px] font-semibold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700">
-          Bật
-        </button>
-        <button class="py-2 text-[11px] font-semibold rounded-lg bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700">
-          Tắt
-        </button>
+    <!-- Right Column -->
+    <div class="flex flex-col gap-4">
+      <div class="glass-card rounded-2xl p-5 flex flex-col justify-between flex-1">
+        <div class="flex items-center justify-between text-slate-400 mb-2">
+          <span id="sys-status-title" class="text-sm font-semibold text-slate-200">System Status</span>
+          <i data-lucide="cpu" class="w-5 h-5 text-sky-400"></i>
+        </div>
+        <div class="space-y-3 text-xs text-slate-300">
+          <div class="flex justify-between py-2 border-b border-slate-800">
+            <span id="label-mcu" class="text-slate-400">Microcontroller:</span>
+            <span class="font-mono text-sky-300">Arduino Board</span>
+          </div>
+          <div class="flex justify-between py-2 border-b border-slate-800">
+            <span id="label-serial" class="text-slate-400">Serial Protocol:</span>
+            <span class="font-mono text-cyan-300">USB Bridge</span>
+          </div>
+          <div class="flex justify-between py-2">
+            <span id="label-cloud" class="text-slate-400">Cloud Sync:</span>
+            <span class="text-emerald-400">Firebase Realtime</span>
+          </div>
+        </div>
+        <div id="hint-text" class="mt-4 pt-3 border-t border-slate-800 text-[11px] text-slate-400 text-center leading-relaxed">
+          Click on the 3D model buttons to configure hardware devices.
+        </div>
       </div>
     </div>
 
@@ -137,33 +163,29 @@
   <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
     <!-- Activity Log -->
     <div class="lg:col-span-2 glass-card rounded-2xl p-5">
-      <h3 class="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
-        <i data-lucide="clock-3" class="w-4 h-4 text-cyan-400"></i>
-        Nhật ký hệ thống gần nhất
+      <h3 id="logs-title" class="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
+        <i data-lucide="clock-3" class="w-4 h-4 text-sky-400"></i>
+        Recent System Logs
       </h3>
       <div class="space-y-2.5 text-xs">
-        <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/40 border border-slate-800">
-          <span class="text-slate-300">Đã ngắt kết nối cổng Serial với vi điều khiển</span>
-          <span class="text-slate-500">15:40:12</span>
+        <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/50 border border-slate-800">
+          <span id="log-1">3D Smart House model successfully initialized</span>
+          <span class="text-slate-500">Just now</span>
         </div>
-        <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/40 border border-slate-800">
-          <span class="text-slate-300">Đèn tự động tắt do cường độ ánh sáng đạt 65%</span>
+        <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/50 border border-slate-800">
+          <span id="log-2">Smart lighting switched to Auto mode</span>
           <span class="text-slate-500">15:38:05</span>
-        </div>
-        <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/40 border border-slate-800">
-          <span class="text-slate-300">Nhiệt độ phòng ổn định ở mức 28.5°C</span>
-          <span class="text-slate-500">15:35:20</span>
         </div>
       </div>
     </div>
 
     <!-- Raw Data Payload Preview -->
     <div class="glass-card rounded-2xl p-5">
-      <h3 class="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
+      <h3 id="json-title" class="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
         <i data-lucide="terminal" class="w-4 h-4 text-slate-400"></i>
-        Cấu trúc JSON (Chờ nhận)
+        JSON Telemetry Payload
       </h3>
-      <pre id="json-preview" class="bg-slate-950/70 p-3 rounded-lg border border-slate-800/80 text-[11px] text-cyan-300 font-mono overflow-x-auto leading-relaxed">
+      <pre id="json-preview" class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 text-[11px] text-sky-300 font-mono overflow-x-auto leading-relaxed">
 {
   "temp": 28.5,
   "light": 65,
@@ -174,11 +196,169 @@
     </div>
   </section>
 
+  <!-- POP-UP SIDE DRAWER -->
+  <div id="drawer-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden transition-opacity opacity-0" onclick="closePanel()"></div>
+  
+  <aside id="control-drawer" class="fixed top-0 right-0 h-full w-full sm:w-[420px] glass-panel z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col p-6 overflow-y-auto">
+    <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
+      <div class="flex items-center gap-3">
+        <div id="drawer-icon-box" class="p-2 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30">
+          <i data-lucide="settings" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h3 id="drawer-title" class="text-base font-bold text-white">Device Control Panel</h3>
+          <p id="drawer-subtitle" class="text-xs text-slate-400">Direct hardware management</p>
+        </div>
+      </div>
+      <button onclick="closePanel()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div id="drawer-body" class="flex-1 space-y-6"></div>
+
+    <div class="pt-4 border-t border-slate-800 text-center text-xs text-slate-500">
+      Arduino Smart House Security System &copy; 2026
+    </div>
+  </aside>
+
+  <!-- Script xử lý đa ngôn ngữ, thời gian thực & ánh sáng động -->
+  <script>
+    let currentLang = 'en';
+    let manualLightingOverride = null;
+
+    const translations = {
+      en: {
+        headerSub: "Arduino Serial Control & Monitoring Platform",
+        hwStatus: "Hardware: Disconnected",
+        fbStatus: "Firebase: Connected",
+        modelTitle: "3D Smart House Spatial Model",
+        modelBadge: "3D Interactive",
+        btnDoor: "Access Control (Servo)",
+        btnEnv: "Environment & LDR",
+        btnAlarm: "Ultrasonic Intrusion Sensor",
+        btnLight: "Smart Lighting (Auto)",
+        sysStatus: "System Status",
+        labelMcu: "Microcontroller:",
+        labelSerial: "Serial Protocol:",
+        labelCloud: "Cloud Sync:",
+        hintText: "Click on the 3D model buttons to configure hardware devices.",
+        logsTitle: "Recent System Logs",
+        log1: "3D Smart House model successfully initialized",
+        log2: "Smart lighting switched to Auto mode",
+        jsonTitle: "JSON Telemetry Payload",
+        drawerTitle: "Device Control Panel",
+        drawerSub: "Direct hardware management"
+      },
+      vi: {
+        headerSub: "Nền tảng Giám sát & Điều khiển qua Arduino Serial",
+        hwStatus: "Mạch: Chưa kết nối",
+        fbStatus: "Firebase: Đã kết nối",
+        modelTitle: "Mô hình không gian 3D nhà thông minh",
+        modelBadge: "Chế độ 3D tương tác",
+        btnDoor: "Cửa ra vào (Servo)",
+        btnEnv: "Môi trường & LDR",
+        btnAlarm: "Cảm biến siêu âm",
+        btnLight: "Chiếu sáng Auto",
+        sysStatus: "Trạng thái hệ thống",
+        labelMcu: "Vi điều khiển:",
+        labelSerial: "Giao tiếp Serial:",
+        labelCloud: "Đồng bộ đám mây:",
+        hintText: "Nhấn vào các nút trên mô hình 3D để cấu hình thiết bị.",
+        logsTitle: "Nhật ký hệ thống gần nhất",
+        log1: "Khởi tạo thành công mô hình 3D nhà thông minh",
+        log2: "Đèn thông minh chuyển sang chế độ Auto",
+        jsonTitle: "Cấu trúc dữ liệu JSON",
+        drawerTitle: "Bảng điều khiển thiết bị",
+        drawerSub: "Quản lý phần cứng trực tiếp"
+      }
+    };
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'en' ? 'vi' : 'en';
+      updateTexts();
+    }
+
+    function updateTexts() {
+      const t = translations[currentLang];
+      document.getElementById('header-sub-title').textContent = t.headerSub;
+      document.getElementById('hw-status-text').textContent = t.hwStatus;
+      document.getElementById('fb-status-text').textContent = t.fbStatus;
+      document.getElementById('model-title').textContent = t.modelTitle;
+      document.getElementById('model-badge').textContent = t.modelBadge;
+      document.getElementById('btn-door-label').textContent = t.btnDoor;
+      document.getElementById('btn-env-label').textContent = t.btnEnv;
+      document.getElementById('btn-alarm-label').textContent = t.btnAlarm;
+      document.getElementById('btn-light-label').textContent = t.btnLight;
+      document.getElementById('sys-status-title').textContent = t.sysStatus;
+      document.getElementById('label-mcu').textContent = t.labelMcu;
+      document.getElementById('label-serial').textContent = t.labelSerial;
+      document.getElementById('label-cloud').textContent = t.labelCloud;
+      document.getElementById('hint-text').textContent = t.hintText;
+      document.getElementById('logs-title').textContent = t.logsTitle;
+      document.getElementById('log-1').textContent = t.log1;
+      document.getElementById('log-2').textContent = t.log2;
+      document.getElementById('json-title').textContent = t.jsonTitle;
+      document.getElementById('drawer-title').textContent = t.drawerTitle;
+      document.getElementById('drawer-subtitle').textContent = t.drawerSub;
+    }
+
+    function forceCycleLighting() {
+      if (manualLightingOverride === null) manualLightingOverride = 'morning';
+      else if (manualLightingOverride === 'morning') manualLightingOverride = 'noon';
+      else if (manualLightingOverride === 'noon') manualLightingOverride = 'evening';
+      else manualLightingOverride = null;
+
+      applyLightingMode(manualLightingOverride);
+    }
+
+    function applyLightingMode(mode) {
+      const houseBg = document.getElementById('house-bg');
+      const timeBadge = document.getElementById('time-mode-badge');
+      const testBtn = document.getElementById('test-light-btn');
+
+      const now = new Date();
+      const hours = mode === 'morning' ? 8 : (mode === 'noon' ? 13 : (mode === 'evening' ? 20 : now.getHours()));
+
+      if (mode) {
+        testBtn.textContent = `Test: ${mode.toUpperCase()}`;
+      } else {
+        testBtn.textContent = `Test: Auto`;
+      }
+
+      if (hours >= 18 || hours < 6) {
+        houseBg.className = "absolute inset-0 bg-cover bg-center rounded-xl pointer-events-none lighting-evening";
+        timeBadge.textContent = currentLang === 'en' ? "Evening" : "Tối";
+      } else if (hours >= 12 && hours < 18) {
+        houseBg.className = "absolute inset-0 bg-cover bg-center rounded-xl pointer-events-none lighting-noon";
+        timeBadge.textContent = currentLang === 'en' ? "Noon" : "Trưa";
+      } else {
+        houseBg.className = "absolute inset-0 bg-cover bg-center rounded-xl pointer-events-none lighting-morning";
+        timeBadge.textContent = currentLang === 'en' ? "Morning" : "Sáng";
+      }
+    }
+
+    function updateRealtimeClock() {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+      document.getElementById('realtime-clock').textContent = `${hours}:${minutes}:${seconds}`;
+
+      if (manualLightingOverride === null) {
+        applyLightingMode(null);
+      }
+    }
+
+    setInterval(updateRealtimeClock, 1000);
+    updateRealtimeClock();
+  </script>
+
+  <!-- Firebase & UI Scripts -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    // Cấu hình Firebase của bạn
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
@@ -192,35 +372,11 @@
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Cập nhật trạng thái Firebase thành "Đã kết nối" trên thanh phía trên
-    const fbDot = document.getElementById('firebase-dot');
-    const fbText = document.getElementById('firebase-text');
-    if (fbDot && fbText) {
-      fbDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-      fbText.parentElement.className = "flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 font-medium";
-      fbText.textContent = "Firebase: Đã kết nối";
-    }
-
-    // Lắng nghe dữ liệu realtime từ Firebase
     const dbRef = ref(db, '/smart_home');
     onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
       if (data) {
-        if (data.temp !== undefined) {
-          document.getElementById('temp-value').innerHTML = `${data.temp}°C <span class="text-xs font-normal text-slate-400">(Trực tuyến)</span>`;
-        }
-        if (data.light !== undefined) {
-          document.getElementById('light-value').textContent = `${data.light}%`;
-        }
-        if (data.door !== undefined) {
-          document.getElementById('door-status').textContent = data.door === "OPEN" ? "Cửa Mở (90°)" : "Cửa Đóng (0°)";
-        }
-        if (data.alarmArmed !== undefined) {
-          document.getElementById('alarm-status').textContent = data.alarmArmed == 1 ? "Đang bảo vệ" : "Chưa kích hoạt";
-        }
-        if (data.lightMode !== undefined) {
-          document.getElementById('light-mode-status').textContent = `Chế độ: ${data.lightMode}`;
-        }
+        window.latestSensorData = data;
         const jsonPreview = document.getElementById('json-preview');
         if (jsonPreview) {
           jsonPreview.textContent = JSON.stringify(data, null, 2);
@@ -229,6 +385,98 @@
     });
 
     lucide.createIcons();
+  </script>
+
+  <!-- Panel Drawer Handler Script -->
+  <script>
+    window.latestSensorData = { temp: 28.5, light: 65, door: "CLOSED", alarmArmed: 0, lightMode: "AUTO" };
+
+    function openPanel(type) {
+      const drawer = document.getElementById('control-drawer');
+      const backdrop = document.getElementById('drawer-backdrop');
+      const title = document.getElementById('drawer-title');
+      const body = document.getElementById('drawer-body');
+      
+      backdrop.classList.remove('hidden');
+      setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
+      drawer.classList.remove('translate-x-full');
+
+      const data = window.latestSensorData;
+
+      if (type === 'door') {
+        title.textContent = currentLang === 'en' ? "Access Control (Servo Motor)" : "Kiểm soát ra vào (Servo Motor)";
+        body.innerHTML = `
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+            <div class="text-sm font-semibold text-slate-300">${currentLang === 'en' ? 'Current Door Status:' : 'Trạng thái cửa hiện tại:'}</div>
+            <div class="text-2xl font-bold text-sky-400">${data.door === "OPEN" ? (currentLang === 'en' ? "Door Open (90°)" : "Cửa Mở (90°)") : (currentLang === 'en' ? "Door Closed (0°)" : "Cửa Đóng (0°)")}</div>
+            <p class="text-xs text-slate-400">${currentLang === 'en' ? 'Synced via Serial / Firebase' : 'Đồng bộ qua Serial / Firebase'}</p>
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-medium text-slate-300">${currentLang === 'en' ? 'Manual Commands:' : 'Thao tác điều khiển:'}</label>
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="alert('${currentLang === 'en' ? 'Command sent: DOOR_OPEN' : 'Đã gửi lệnh mở cửa (DOOR_OPEN)'}')" class="py-3 px-4 text-xs font-semibold rounded-xl bg-sky-600/20 border border-sky-500/40 text-sky-300 hover:bg-sky-600/30 transition">${currentLang === 'en' ? 'Open (90°)' : 'Mở (90°)'}</button>
+              <button onclick="alert('${currentLang === 'en' ? 'Command sent: DOOR_CLOSE' : 'Đã gửi lệnh đóng cửa (DOOR_CLOSE)'}')" class="py-3 px-4 text-xs font-semibold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition">${currentLang === 'en' ? 'Close (0°)' : 'Đóng (0°)'}</button>
+            </div>
+          </div>
+        `;
+      } else if (type === 'env') {
+        title.textContent = currentLang === 'en' ? "Environment & LDR Sensor" : "Môi trường & Quang trở (LDR)";
+        body.innerHTML = `
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-4">
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-400">${currentLang === 'en' ? 'Room Temperature:' : 'Nhiệt độ phòng:'}</span>
+              <span class="text-lg font-bold text-amber-400">${data.temp}°C (${currentLang === 'en' ? 'Normal' : 'Bình thường'})</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-400">${currentLang === 'en' ? 'Light Intensity (LDR):' : 'Cường độ ánh sáng (LDR):'}</span>
+              <span class="text-lg font-bold text-sky-300">${data.light}%</span>
+            </div>
+          </div>
+          <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium text-center">
+            ${currentLang === 'en' ? 'Fire hazard warning threshold: > 50°C' : 'Ngưỡng cảnh báo hỏa hoạn: > 50°C'}
+          </div>
+        `;
+      } else if (type === 'alarm') {
+        title.textContent = currentLang === 'en' ? "Intrusion Security (HC-SR04)" : "An ninh chống trộm (HC-SR04)";
+        body.innerHTML = `
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+            <div class="text-sm font-semibold text-slate-300">${currentLang === 'en' ? 'Security State:' : 'Trạng thái bảo vệ:'}</div>
+            <div class="text-xl font-bold text-slate-200">${data.alarmArmed ? (currentLang === 'en' ? "Alarm Armed" : "Đang bật bảo vệ") : (currentLang === 'en' ? "Disarmed" : "Chưa kích hoạt")}</div>
+            <p class="text-xs text-slate-400">${currentLang === 'en' ? 'Ultrasonic sensor range detection < 30cm' : 'Cảm biến siêu âm quét khoảng cách < 30cm'}</p>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <button onclick="alert('${currentLang === 'en' ? 'Security system armed' : 'Đã bật chế độ bảo vệ'}')" class="py-3 px-4 text-xs font-semibold rounded-xl bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30 transition">${currentLang === 'en' ? 'Arm System' : 'Bật bảo vệ'}</button>
+            <button onclick="alert('${currentLang === 'en' ? 'Security system disarmed' : 'Đã tắt chế độ bảo vệ'}')" class="py-3 px-4 text-xs font-semibold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition">${currentLang === 'en' ? 'Disarm' : 'Tắt bảo vệ'}</button>
+          </div>
+        `;
+      } else if (type === 'light') {
+        title.textContent = currentLang === 'en' ? "Smart Lighting Control" : "Chiếu sáng thông minh";
+        body.innerHTML = `
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+            <div class="text-sm font-semibold text-slate-300">${currentLang === 'en' ? 'Active Mode:' : 'Chế độ hiện tại:'}</div>
+            <div class="text-xl font-bold text-yellow-300">Mode: ${data.lightMode || 'AUTO'}</div>
+            <p class="text-xs text-slate-400">${currentLang === 'en' ? 'Auto turns on when ambient light < 30%' : 'Tự động bật khi ánh sáng < 30%'}</p>
+          </div>
+          <div class="space-y-2">
+            <label class="text-xs font-medium text-slate-300">${currentLang === 'en' ? 'Select Lighting Mode:' : 'Chọn chế độ điều khiển:'}</label>
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="alert('${currentLang === 'en' ? 'Switched to Auto' : 'Chuyển Auto'}')" class="py-2.5 text-xs font-semibold rounded-xl bg-sky-600/20 border border-sky-500/40 text-sky-300">Auto</button>
+              <button onclick="alert('${currentLang === 'en' ? 'Switched to Manual ON' : 'Bật thủ công'}')" class="py-2.5 text-xs font-semibold rounded-xl bg-slate-800 border border-slate-700 text-slate-300">ON</button>
+              <button onclick="alert('${currentLang === 'en' ? 'Switched to Manual OFF' : 'Tắt thủ công'}')" class="py-2.5 text-xs font-semibold rounded-xl bg-slate-800 border border-slate-700 text-slate-300">OFF</button>
+            </div>
+          </div>
+        `;
+      }
+      lucide.createIcons();
+    }
+
+    function closePanel() {
+      const drawer = document.getElementById('control-drawer');
+      const backdrop = document.getElementById('drawer-backdrop');
+      backdrop.classList.add('opacity-0');
+      drawer.classList.add('translate-x-full');
+      setTimeout(() => backdrop.classList.add('hidden'), 300);
+    }
   </script>
 </body>
 </html>
