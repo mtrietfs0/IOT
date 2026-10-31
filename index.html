@@ -25,22 +25,10 @@
       70% { transform: scale(1.02); box-shadow: 0 0 0 6px rgba(14, 165, 233, 0); }
       100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
     }
-    .btn-hotspot {
-      animation: sonar 2.5s infinite ease-in-out;
-    }
-    /* Hiệu ứng ánh sáng động theo giờ trong ngày */
-    .lighting-morning {
-      filter: brightness(1.05) contrast(1.05) saturate(1.1);
-      transition: filter 1.5s ease-in-out;
-    }
-    .lighting-noon {
-      filter: brightness(1.2) contrast(1.1) saturate(1.25) sepia(0.15);
-      transition: filter 1.5s ease-in-out;
-    }
-    .lighting-evening {
-      filter: brightness(0.4) contrast(1.35) saturate(0.85) sepia(0.4) hue-rotate(185deg);
-      transition: filter 1.5s ease-in-out;
-    }
+    .btn-hotspot { animation: sonar 2.5s infinite ease-in-out; }
+    .lighting-morning { filter: brightness(1.08) contrast(1.05) saturate(1.1); transition: filter 1s ease-in-out; }
+    .lighting-noon { filter: brightness(1.2) contrast(1.1) saturate(1.25) sepia(0.12); transition: filter 1s ease-in-out; }
+    .lighting-evening { filter: brightness(0.42) contrast(1.35) saturate(0.85) sepia(0.4) hue-rotate(185deg); transition: filter 1s ease-in-out; }
   </style>
 </head>
 <body class="bg-[#070913] text-slate-100 min-h-screen flex flex-col p-6 relative overflow-x-hidden">
@@ -57,7 +45,6 @@
       </div>
     </div>
 
-    <!-- Hardware & Cloud Status + Language Switcher -->
     <div class="flex items-center gap-3 text-xs font-medium">
       <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300">
         <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
@@ -77,82 +64,112 @@
   <!-- Main Center Grid -->
   <main class="grid grid-cols-1 lg:grid-cols-3 gap-6 my-6 flex-1">
     
-    <!-- KHUNG MẶT BẰNG 3D NHÀ THÔNG MINH -->
+    <!-- KHUNG MẶT BẰNG 3D -->
     <div class="lg:col-span-2 glass-card rounded-2xl p-5 relative flex flex-col justify-between overflow-hidden min-h-[480px]">
-      
       <div class="flex items-center justify-between mb-3 z-10 px-1">
         <h2 id="model-title" class="text-sm font-semibold text-slate-200">3D Smart House Spatial Model</h2>
         <div class="flex items-center gap-2">
-          <button onclick="forceCycleLighting()" title="Click to test lighting modes" class="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-[11px] text-sky-300 border border-slate-700 transition">
-            <span id="test-light-btn">Test Light: Auto</span>
+          <!-- NÚT MÔ PHỎNG TEST MỐC THỜI GIAN/NHIỆT ĐỘ GỌN GÀNG -->
+          <button onclick="cycleTimePreset()" title="Click to test time & temperature presets" class="px-3 py-1 rounded-lg bg-sky-600/20 hover:bg-sky-600/30 text-xs font-semibold text-sky-300 border border-sky-500/40 transition flex items-center gap-1.5">
+            <i data-lucide="sun-medium" class="w-3.5 h-3.5"></i>
+            <span id="test-light-btn">Test: Morning (33°C)</span>
           </button>
           <span id="model-badge" class="px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/30 text-xs text-sky-300 font-medium">3D Interactive</span>
         </div>
       </div>
 
-      <!-- Vùng chứa ảnh toàn cảnh ngôi nhà góc rộng rõ nét -->
       <div class="relative flex-1 rounded-xl bg-[#0b0e17] border border-slate-800 flex items-center justify-center p-2 my-1 overflow-hidden">
-        
-        <!-- Ảnh toàn cảnh ngôi nhà 2 tầng hiện đại -->
         <div id="house-bg" class="absolute inset-0 bg-cover bg-center rounded-xl pointer-events-none lighting-morning" style="background-image: url('https://images.unsplash.com/photo-1613977257363-707ba9348227?q=80&w=1400&auto=format&fit=crop');"></div>
         <div class="absolute inset-0 bg-gradient-to-t from-[#070913]/80 via-transparent to-[#070913]/20 rounded-xl"></div>
 
-        <!-- 1. CỬA RA VÀO (SERVO) - Đặt tại Cửa chính tầng 1 -->
         <button onclick="openPanel('door')" class="absolute bottom-10 left-[28%] transform -translate-x-1/2 flex items-center gap-2 px-3.5 py-2 rounded-full bg-sky-950/90 border-2 border-sky-400 text-sky-200 text-xs font-semibold btn-hotspot hover:bg-sky-900 transition shadow-2xl z-20 focus:outline-none">
           <i data-lucide="door-closed" class="w-4 h-4 text-sky-300"></i> <span id="btn-door-label">Access Control (Servo)</span>
         </button>
 
-        <!-- 2. MÔI TRƯỜNG & LDR - Đặt tại Mảng tường Tầng 2 -->
         <button onclick="openPanel('env')" class="absolute top-[28%] left-[32%] transform -translate-x-1/2 flex items-center gap-2 px-3.5 py-2 rounded-full bg-amber-950/90 border-2 border-amber-400 text-amber-200 text-xs font-semibold btn-hotspot hover:bg-amber-900 transition shadow-2xl z-20 focus:outline-none">
           <i data-lucide="thermometer" class="w-4 h-4 text-amber-300"></i> <span id="btn-env-label">Environment & LDR</span>
         </button>
 
-        <!-- 3. CHIẾU SÁNG AUTO - Đặt tại Trần / Không gian Phòng khách tầng 1 -->
         <button onclick="openPanel('light')" class="absolute top-[52%] right-[25%] flex items-center gap-2 px-3.5 py-2 rounded-full bg-yellow-950/90 border-2 border-yellow-400 text-yellow-200 text-xs font-semibold btn-hotspot hover:bg-yellow-900 transition shadow-2xl z-20 focus:outline-none">
           <i data-lucide="lightbulb" class="w-4 h-4 text-yellow-300"></i> <span id="btn-light-label">Smart Lighting (Auto)</span>
         </button>
 
-        <!-- 4. CẢM BIẾN SIÊU ÂM - Đặt tại Mép mái/Mái hiên bảo vệ góc bên phải -->
         <button onclick="openPanel('alarm')" class="absolute top-[18%] right-[10%] flex items-center gap-2 px-3.5 py-2 rounded-full bg-red-950/90 border-2 border-red-400 text-red-200 text-xs font-semibold btn-hotspot hover:bg-red-900 transition shadow-2xl z-20 focus:outline-none">
           <i data-lucide="radar" class="w-4 h-4 text-red-300"></i> <span id="btn-alarm-label">Ultrasonic Intrusion Sensor</span>
         </button>
-
       </div>
 
-      <!-- Khung thời gian thực góc trái & Trạng thái -->
+      <!-- ĐỒNG HỒ THỜI GIAN THỰC LẤY CHÍNH XÁC GIỜ HỆ THỐNG MÁY TÍNH -->
       <div class="flex items-center justify-between text-xs text-slate-400 z-10 pt-2 px-1">
         <div class="flex items-center gap-2">
           <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
           <span id="realtime-clock" class="font-mono text-sky-300 font-medium">--:--:--</span>
-          <span id="time-mode-badge" class="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300">Morning</span>
+          <span id="time-mode-badge" class="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300">MORNING</span>
         </div>
         <span class="text-sky-400">4 Zones Connected</span>
       </div>
     </div>
 
-    <!-- Right Column -->
+    <!-- CỘT PHẢI: SYSTEM STATUS & BỘ PHÂN TÍCH AI (100% MẶC ĐỊNH TIẾNG ANH) -->
     <div class="flex flex-col gap-4">
       <div class="glass-card rounded-2xl p-5 flex flex-col justify-between flex-1">
         <div class="flex items-center justify-between text-slate-400 mb-2">
           <span id="sys-status-title" class="text-sm font-semibold text-slate-200">System Status</span>
           <i data-lucide="cpu" class="w-5 h-5 text-sky-400"></i>
         </div>
-        <div class="space-y-3 text-xs text-slate-300">
-          <div class="flex justify-between py-2 border-b border-slate-800">
+        <div class="space-y-2 text-xs text-slate-300">
+          <div class="flex justify-between py-1.5 border-b border-slate-800">
             <span id="label-mcu" class="text-slate-400">Microcontroller:</span>
             <span class="font-mono text-sky-300">Arduino Board</span>
           </div>
-          <div class="flex justify-between py-2 border-b border-slate-800">
+          <div class="flex justify-between py-1.5 border-b border-slate-800">
             <span id="label-serial" class="text-slate-400">Serial Protocol:</span>
             <span class="font-mono text-cyan-300">USB Bridge</span>
           </div>
-          <div class="flex justify-between py-2">
+          <div class="flex justify-between py-1.5">
             <span id="label-cloud" class="text-slate-400">Cloud Sync:</span>
             <span class="text-emerald-400">Firebase Realtime</span>
           </div>
         </div>
-        <div id="hint-text" class="mt-4 pt-3 border-t border-slate-800 text-[11px] text-slate-400 text-center leading-relaxed">
-          Click on the 3D model buttons to configure hardware devices.
+      </div>
+
+      <!-- CARD PHÂN TÍCH AI CHUẨN ENGLISH MẶC ĐỊNH -->
+      <div class="glass-card rounded-2xl p-5 border-l-4 border-l-sky-400 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2 text-sky-400">
+            <i data-lucide="brain-circuit" class="w-4 h-4"></i>
+            <h3 id="ai-card-title" class="text-xs font-bold uppercase tracking-wider">AI Climate Advisor</h3>
+          </div>
+          <span id="ai-status-tag" class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-semibold">Hot & Dry</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-xs bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+          <div>
+            <span id="ai-label-temp" class="text-slate-400 text-[11px]">Temperature:</span>
+            <p id="ai-temp-val" class="font-bold text-amber-400 text-sm">33.0 °C</p>
+          </div>
+          <div>
+            <span id="ai-label-hum" class="text-slate-400 text-[11px]">Humidity:</span>
+            <p id="ai-humidity-val" class="font-bold text-cyan-400 text-sm">40 %</p>
+          </div>
+        </div>
+
+        <div class="space-y-2 text-xs">
+          <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800">
+            <p class="font-semibold text-sky-300 mb-1 flex items-center gap-1.5">
+              <i data-lucide="footprints" class="w-3.5 h-3.5"></i>
+              <span id="ai-outdoor-title">Going Outdoors Advice:</span>
+            </p>
+            <p id="ai-outdoor-text" class="text-slate-300 leading-relaxed text-[11px]">--</p>
+          </div>
+
+          <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800">
+            <p class="font-semibold text-emerald-300 mb-1 flex items-center gap-1.5">
+              <i data-lucide="home" class="w-3.5 h-3.5"></i>
+              <span id="ai-indoor-title">Staying Indoors Advice:</span>
+            </p>
+            <p id="ai-indoor-text" class="text-slate-300 leading-relaxed text-[11px]">--</p>
+          </div>
         </div>
       </div>
     </div>
@@ -161,25 +178,19 @@
 
   <!-- Bottom Log & Telemetry Preview -->
   <section class="grid grid-cols-1 lg:grid-cols-3 gap-5">
-    <!-- Activity Log -->
     <div class="lg:col-span-2 glass-card rounded-2xl p-5">
       <h3 id="logs-title" class="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
         <i data-lucide="clock-3" class="w-4 h-4 text-sky-400"></i>
         Recent System Logs
       </h3>
-      <div class="space-y-2.5 text-xs">
+      <div id="logs-container" class="space-y-2.5 text-xs max-h-40 overflow-y-auto pr-1">
         <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/50 border border-slate-800">
-          <span id="log-1">3D Smart House model successfully initialized</span>
-          <span class="text-slate-500">Just now</span>
-        </div>
-        <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/50 border border-slate-800">
-          <span id="log-2">Smart lighting switched to Auto mode</span>
-          <span class="text-slate-500">15:38:05</span>
+          <span>3D Smart House model successfully initialized</span>
+          <span id="init-log-time" class="text-slate-500 font-mono">--:--:--</span>
         </div>
       </div>
     </div>
 
-    <!-- Raw Data Payload Preview -->
     <div class="glass-card rounded-2xl p-5">
       <h3 id="json-title" class="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
         <i data-lucide="terminal" class="w-4 h-4 text-slate-400"></i>
@@ -187,11 +198,11 @@
       </h3>
       <pre id="json-preview" class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 text-[11px] text-sky-300 font-mono overflow-x-auto leading-relaxed">
 {
-  "temp": 28.5,
-  "light": 65,
+  "temp": 33.0,
+  "humidity": 40,
+  "light": 85,
   "door": "CLOSED",
-  "alarmArmed": 0,
-  "lightMode": "AUTO"
+  "alarmArmed": 0
 }</pre>
     </div>
   </section>
@@ -222,10 +233,25 @@
     </div>
   </aside>
 
-  <!-- Script xử lý đa ngôn ngữ, thời gian thực & ánh sáng động -->
+  <!-- Script Core -->
   <script>
-    let currentLang = 'en';
-    let manualLightingOverride = null;
+    let currentLang = 'en'; // Mặc định mở ra 100% tiếng Anh
+    
+    let timePresets = [
+      { id: 'morning', nameEn: 'Morning (33°C)', nameVi: 'Sáng (33°C)', temp: 33, humidity: 40, bgClass: 'lighting-morning' },
+      { id: 'afternoon', nameEn: 'Afternoon (30°C)', nameVi: 'Chiều (30°C)', temp: 30, humidity: 65, bgClass: 'lighting-noon' },
+      { id: 'evening', nameEn: 'Night (25°C)', nameVi: 'Tối (25°C)', temp: 25, humidity: 75, bgClass: 'lighting-evening' }
+    ];
+    let currentPresetIdx = 0;
+
+    window.latestSensorData = { 
+      temp: 33.0, 
+      humidity: 40, 
+      light: 85, 
+      door: "CLOSED", 
+      alarmArmed: 0, 
+      lightMode: "AUTO" 
+    };
 
     const translations = {
       en: {
@@ -242,13 +268,14 @@
         labelMcu: "Microcontroller:",
         labelSerial: "Serial Protocol:",
         labelCloud: "Cloud Sync:",
-        hintText: "Click on the 3D model buttons to configure hardware devices.",
         logsTitle: "Recent System Logs",
-        log1: "3D Smart House model successfully initialized",
-        log2: "Smart lighting switched to Auto mode",
         jsonTitle: "JSON Telemetry Payload",
         drawerTitle: "Device Control Panel",
-        drawerSub: "Direct hardware management"
+        drawerSub: "Direct hardware management",
+        aiLabelTemp: "Temperature:",
+        aiLabelHum: "Humidity:",
+        aiOutdoorTitle: "Going Outdoors Advice:",
+        aiIndoorTitle: "Staying Indoors Advice:"
       },
       vi: {
         headerSub: "Nền tảng Giám sát & Điều khiển qua Arduino Serial",
@@ -264,19 +291,54 @@
         labelMcu: "Vi điều khiển:",
         labelSerial: "Giao tiếp Serial:",
         labelCloud: "Đồng bộ đám mây:",
-        hintText: "Nhấn vào các nút trên mô hình 3D để cấu hình thiết bị.",
         logsTitle: "Nhật ký hệ thống gần nhất",
-        log1: "Khởi tạo thành công mô hình 3D nhà thông minh",
-        log2: "Đèn thông minh chuyển sang chế độ Auto",
         jsonTitle: "Cấu trúc dữ liệu JSON",
         drawerTitle: "Bảng điều khiển thiết bị",
-        drawerSub: "Quản lý phần cứng trực tiếp"
+        drawerSub: "Quản lý phần cứng trực tiếp",
+        aiLabelTemp: "Nhiệt độ:",
+        aiLabelHum: "Độ ẩm:",
+        aiOutdoorTitle: "Khi ra ngoài đường:",
+        aiIndoorTitle: "Khi ở trong nhà:"
       }
     };
+
+    // ĐỒNG HỒ THỜI GIAN THỰC ĐỒNG BỘ GIỜ HỆ THỐNG MÁY TÍNH
+    function startRealtimeClock() {
+      function updateClock() {
+        const now = new Date();
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const timeStr = `${hours}:${minutes}:${seconds}`;
+
+        const clockEl = document.getElementById('realtime-clock');
+        if (clockEl) clockEl.textContent = timeStr;
+
+        const initLogEl = document.getElementById('init-log-time');
+        if (initLogEl && initLogEl.textContent === '--:--:--') {
+          initLogEl.textContent = timeStr;
+        }
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
+
+    function appendLog(message) {
+      const logsContainer = document.getElementById('logs-container');
+      if (!logsContainer) return;
+      
+      const timeStr = document.getElementById('realtime-clock') ? document.getElementById('realtime-clock').textContent : new Date().toLocaleTimeString();
+      const logItem = document.createElement('div');
+      logItem.className = 'flex items-center justify-between p-2.5 rounded-lg bg-slate-900/50 border border-slate-800 animate-fadeIn';
+      logItem.innerHTML = `<span>${message}</span><span class="text-slate-500 font-mono">${timeStr}</span>`;
+      
+      logsContainer.insertBefore(logItem, logsContainer.firstChild);
+    }
 
     function toggleLanguage() {
       currentLang = currentLang === 'en' ? 'vi' : 'en';
       updateTexts();
+      applyPreset(currentPresetIdx);
     }
 
     function updateTexts() {
@@ -294,67 +356,80 @@
       document.getElementById('label-mcu').textContent = t.labelMcu;
       document.getElementById('label-serial').textContent = t.labelSerial;
       document.getElementById('label-cloud').textContent = t.labelCloud;
-      document.getElementById('hint-text').textContent = t.hintText;
       document.getElementById('logs-title').textContent = t.logsTitle;
-      document.getElementById('log-1').textContent = t.log1;
-      document.getElementById('log-2').textContent = t.log2;
       document.getElementById('json-title').textContent = t.jsonTitle;
       document.getElementById('drawer-title').textContent = t.drawerTitle;
       document.getElementById('drawer-subtitle').textContent = t.drawerSub;
+      document.getElementById('ai-label-temp').textContent = t.aiLabelTemp;
+      document.getElementById('ai-label-hum').textContent = t.aiLabelHum;
+      document.getElementById('ai-outdoor-title').textContent = t.aiOutdoorTitle;
+      document.getElementById('ai-indoor-title').textContent = t.aiIndoorTitle;
     }
 
-    function forceCycleLighting() {
-      if (manualLightingOverride === null) manualLightingOverride = 'morning';
-      else if (manualLightingOverride === 'morning') manualLightingOverride = 'noon';
-      else if (manualLightingOverride === 'noon') manualLightingOverride = 'evening';
-      else manualLightingOverride = null;
-
-      applyLightingMode(manualLightingOverride);
+    function cycleTimePreset() {
+      currentPresetIdx = (currentPresetIdx + 1) % timePresets.length;
+      applyPreset(currentPresetIdx);
     }
 
-    function applyLightingMode(mode) {
-      const houseBg = document.getElementById('house-bg');
-      const timeBadge = document.getElementById('time-mode-badge');
-      const testBtn = document.getElementById('test-light-btn');
+    function applyPreset(idx) {
+      const preset = timePresets[idx];
 
-      const now = new Date();
-      const hours = mode === 'morning' ? 8 : (mode === 'noon' ? 13 : (mode === 'evening' ? 20 : now.getHours()));
+      // Cập nhật nhãn nút Test gọn gàng
+      document.getElementById('test-light-btn').textContent = currentLang === 'en' ? `Test: ${preset.nameEn}` : `Test: ${preset.nameVi}`;
+      document.getElementById('time-mode-badge').textContent = preset.id.toUpperCase();
 
-      if (mode) {
-        testBtn.textContent = `Test: ${mode.toUpperCase()}`;
-      } else {
-        testBtn.textContent = `Test: Auto`;
+      document.getElementById('house-bg').className = `absolute inset-0 bg-cover bg-center rounded-xl pointer-events-none ${preset.bgClass}`;
+
+      window.latestSensorData.temp = preset.temp;
+      window.latestSensorData.humidity = preset.humidity;
+      window.latestSensorData.light = preset.id === 'morning' ? 85 : (preset.id === 'afternoon' ? 65 : 20);
+
+      document.getElementById('json-preview').textContent = JSON.stringify(window.latestSensorData, null, 2);
+      appendLog(`AI Advisor analyzed preset: ${preset.nameEn}`);
+
+      updateAIAdvice(preset);
+    }
+
+    function updateAIAdvice(preset) {
+      document.getElementById('ai-temp-val').textContent = `${preset.temp} °C`;
+      document.getElementById('ai-humidity-val').textContent = `${preset.humidity} %`;
+
+      let tagVi = "", tagEn = "";
+      let outdoorVi = "", outdoorEn = "";
+      let indoorVi = "", indoorEn = "";
+
+      if (preset.temp === 33) {
+        tagVi = "Nắng Nóng Khô"; tagEn = "Hot & Dry";
+        outdoorVi = "Nhiệt độ lên đến 33°C kèm độ ẩm thấp. Ra đường nên mặc áo chống nắng, mang khẩu trang, đeo kính râm và mang theo nước uống.";
+        outdoorEn = "Hot at 33°C with low humidity. Wear UV jackets, mask, sunglasses, and carry drinking water.";
+        indoorVi = "Nên kéo rèm che nắng hướng Tây/Nam, bật quạt mát và sử dụng thêm máy phun sương bù ẩm.";
+        indoorEn = "Close sun-facing blinds, use cooling fans, and run a humidifier for comfort.";
+      } 
+      else if (preset.temp === 30) {
+        tagVi = "Nắng Nhiệt Đới Oi"; tagEn = "Warm & Humid";
+        outdoorVi = "Nhiệt độ 30°C khá oi bức. Nên chọn trang phục mỏng nhẹ thoáng khí, mang theo ô/dù đề phòng mưa rào bất chợt.";
+        outdoorEn = "Warm at 30°C. Wear light breathable clothes and carry an umbrella for sudden showers.";
+        indoorVi = "Môi trường hơi oi. Nên mở quạt thông gió hoặc bật điều hòa ở mức 26-27°C.";
+        indoorEn = "Environment is warm. Run ventilation fans or set AC around 26-27°C.";
+      } 
+      else {
+        tagVi = "Mát Mẻ Dễ Chịu"; tagEn = "Cool & Pleasant";
+        outdoorVi = "Nhiệt độ hạ xuống 25°C mát mẻ. Thích hợp đi dạo ngoài trời, nếu ra đường muộn nên mang áo khoác nhẹ.";
+        outdoorEn = "Pleasant 25°C evening. Great for outdoor walks; bring a light windbreaker if late.";
+        indoorVi = "Nhiệt độ trong nhà lý tưởng. Có thể mở rộng cửa sổ để đón không khí tự nhiên trong lành.";
+        indoorEn = "Ideal indoor temperature. Open windows to allow fresh natural airflow.";
       }
 
-      if (hours >= 18 || hours < 6) {
-        houseBg.className = "absolute inset-0 bg-cover bg-center rounded-xl pointer-events-none lighting-evening";
-        timeBadge.textContent = currentLang === 'en' ? "Evening" : "Tối";
-      } else if (hours >= 12 && hours < 18) {
-        houseBg.className = "absolute inset-0 bg-cover bg-center rounded-xl pointer-events-none lighting-noon";
-        timeBadge.textContent = currentLang === 'en' ? "Noon" : "Trưa";
-      } else {
-        houseBg.className = "absolute inset-0 bg-cover bg-center rounded-xl pointer-events-none lighting-morning";
-        timeBadge.textContent = currentLang === 'en' ? "Morning" : "Sáng";
-      }
+      document.getElementById('ai-status-tag').textContent = currentLang === 'en' ? tagEn : tagVi;
+      document.getElementById('ai-outdoor-text').textContent = currentLang === 'en' ? outdoorEn : outdoorVi;
+      document.getElementById('ai-indoor-text').textContent = currentLang === 'en' ? indoorEn : indoorVi;
     }
 
-    function updateRealtimeClock() {
-      const now = new Date();
-      const hours = now.getHours();
-      const minutes = String(now.getMinutes()).padStart(2, '0');
-      const seconds = String(now.getSeconds()).padStart(2, '0');
-      document.getElementById('realtime-clock').textContent = `${hours}:${minutes}:${seconds}`;
-
-      if (manualLightingOverride === null) {
-        applyLightingMode(null);
-      }
-    }
-
-    setInterval(updateRealtimeClock, 1000);
-    updateRealtimeClock();
+    startRealtimeClock();
+    applyPreset(0);
   </script>
 
-  <!-- Firebase & UI Scripts -->
+  <!-- Firebase Integration Script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -375,99 +450,147 @@
     const dbRef = ref(db, '/smart_home');
     onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
-      if (data) {
+      if (data && data.temp) {
         window.latestSensorData = data;
-        const jsonPreview = document.getElementById('json-preview');
-        if (jsonPreview) {
-          jsonPreview.textContent = JSON.stringify(data, null, 2);
-        }
+        document.getElementById('json-preview').textContent = JSON.stringify(data, null, 2);
       }
     });
 
     lucide.createIcons();
   </script>
 
-  <!-- Panel Drawer Handler Script -->
+  <!-- Drawer Control Script -->
   <script>
-    window.latestSensorData = { temp: 28.5, light: 65, door: "CLOSED", alarmArmed: 0, lightMode: "AUTO" };
-
     function openPanel(type) {
       const drawer = document.getElementById('control-drawer');
       const backdrop = document.getElementById('drawer-backdrop');
-      const title = document.getElementById('drawer-title');
-      const body = document.getElementById('drawer-body');
       
       backdrop.classList.remove('hidden');
       setTimeout(() => backdrop.classList.remove('opacity-0'), 10);
       drawer.classList.remove('translate-x-full');
 
+      renderDrawerContent(type);
+    }
+
+    function renderDrawerContent(type) {
+      const title = document.getElementById('drawer-title');
+      const body = document.getElementById('drawer-body');
       const data = window.latestSensorData;
 
       if (type === 'door') {
         title.textContent = currentLang === 'en' ? "Access Control (Servo Motor)" : "Kiểm soát ra vào (Servo Motor)";
+        const isOpen = data.door === "OPEN";
         body.innerHTML = `
           <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
             <div class="text-sm font-semibold text-slate-300">${currentLang === 'en' ? 'Current Door Status:' : 'Trạng thái cửa hiện tại:'}</div>
-            <div class="text-2xl font-bold text-sky-400">${data.door === "OPEN" ? (currentLang === 'en' ? "Door Open (90°)" : "Cửa Mở (90°)") : (currentLang === 'en' ? "Door Closed (0°)" : "Cửa Đóng (0°)")}</div>
-            <p class="text-xs text-slate-400">${currentLang === 'en' ? 'Synced via Serial / Firebase' : 'Đồng bộ qua Serial / Firebase'}</p>
+            <div id="drawer-door-status" class="text-2xl font-bold ${isOpen ? 'text-emerald-400' : 'text-sky-400'}">
+              ${isOpen ? (currentLang === 'en' ? "Door Open (90°)" : "Cửa Mở (90°)") : (currentLang === 'en' ? "Door Closed (0°)" : "Cửa Đóng (0°)")}
+            </div>
+            <p class="text-xs text-slate-400">Synced via Serial Bridge</p>
           </div>
           <div class="space-y-2">
             <label class="text-xs font-medium text-slate-300">${currentLang === 'en' ? 'Manual Commands:' : 'Thao tác điều khiển:'}</label>
             <div class="grid grid-cols-2 gap-3">
-              <button onclick="alert('${currentLang === 'en' ? 'Command sent: DOOR_OPEN' : 'Đã gửi lệnh mở cửa (DOOR_OPEN)'}')" class="py-3 px-4 text-xs font-semibold rounded-xl bg-sky-600/20 border border-sky-500/40 text-sky-300 hover:bg-sky-600/30 transition">${currentLang === 'en' ? 'Open (90°)' : 'Mở (90°)'}</button>
-              <button onclick="alert('${currentLang === 'en' ? 'Command sent: DOOR_CLOSE' : 'Đã gửi lệnh đóng cửa (DOOR_CLOSE)'}')" class="py-3 px-4 text-xs font-semibold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition">${currentLang === 'en' ? 'Close (0°)' : 'Đóng (0°)'}</button>
+              <button onclick="setDoorState('OPEN')" class="py-3 px-4 text-xs font-semibold rounded-xl border transition ${isOpen ? 'bg-sky-600 border-sky-400 text-white shadow-lg shadow-sky-500/30' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
+                ${currentLang === 'en' ? 'Open (90°)' : 'Mở (90°)'}
+              </button>
+              <button onclick="setDoorState('CLOSED')" class="py-3 px-4 text-xs font-semibold rounded-xl border transition ${!isOpen ? 'bg-sky-600 border-sky-400 text-white shadow-lg shadow-sky-500/30' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
+                ${currentLang === 'en' ? 'Close (0°)' : 'Đóng (0°)'}
+              </button>
             </div>
           </div>
         `;
-      } else if (type === 'env') {
-        title.textContent = currentLang === 'en' ? "Environment & LDR Sensor" : "Môi trường & Quang trở (LDR)";
-        body.innerHTML = `
-          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-4">
-            <div class="flex justify-between items-center">
-              <span class="text-xs text-slate-400">${currentLang === 'en' ? 'Room Temperature:' : 'Nhiệt độ phòng:'}</span>
-              <span class="text-lg font-bold text-amber-400">${data.temp}°C (${currentLang === 'en' ? 'Normal' : 'Bình thường'})</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-xs text-slate-400">${currentLang === 'en' ? 'Light Intensity (LDR):' : 'Cường độ ánh sáng (LDR):'}</span>
-              <span class="text-lg font-bold text-sky-300">${data.light}%</span>
-            </div>
-          </div>
-          <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium text-center">
-            ${currentLang === 'en' ? 'Fire hazard warning threshold: > 50°C' : 'Ngưỡng cảnh báo hỏa hoạn: > 50°C'}
-          </div>
-        `;
-      } else if (type === 'alarm') {
+      } 
+      else if (type === 'alarm') {
         title.textContent = currentLang === 'en' ? "Intrusion Security (HC-SR04)" : "An ninh chống trộm (HC-SR04)";
+        const isArmed = data.alarmArmed === 1;
         body.innerHTML = `
           <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
             <div class="text-sm font-semibold text-slate-300">${currentLang === 'en' ? 'Security State:' : 'Trạng thái bảo vệ:'}</div>
-            <div class="text-xl font-bold text-slate-200">${data.alarmArmed ? (currentLang === 'en' ? "Alarm Armed" : "Đang bật bảo vệ") : (currentLang === 'en' ? "Disarmed" : "Chưa kích hoạt")}</div>
-            <p class="text-xs text-slate-400">${currentLang === 'en' ? 'Ultrasonic sensor range detection < 30cm' : 'Cảm biến siêu âm quét khoảng cách < 30cm'}</p>
+            <div id="drawer-alarm-status" class="text-2xl font-bold ${isArmed ? 'text-red-400' : 'text-slate-400'}">
+              ${isArmed ? (currentLang === 'en' ? "ARMED (Active)" : "ĐANG BẬT BẢO VỆ") : (currentLang === 'en' ? "DISARMED" : "TẮT BẢO VỆ")}
+            </div>
+            <p class="text-xs text-slate-400">Ultrasonic range detection threshold: < 30cm</p>
           </div>
-          <div class="grid grid-cols-2 gap-3">
-            <button onclick="alert('${currentLang === 'en' ? 'Security system armed' : 'Đã bật chế độ bảo vệ'}')" class="py-3 px-4 text-xs font-semibold rounded-xl bg-red-600/20 border border-red-500/40 text-red-300 hover:bg-red-600/30 transition">${currentLang === 'en' ? 'Arm System' : 'Bật bảo vệ'}</button>
-            <button onclick="alert('${currentLang === 'en' ? 'Security system disarmed' : 'Đã tắt chế độ bảo vệ'}')" class="py-3 px-4 text-xs font-semibold rounded-xl bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition">${currentLang === 'en' ? 'Disarm' : 'Tắt bảo vệ'}</button>
+          
+          <div class="space-y-3">
+            <label class="text-xs font-medium text-slate-300">${currentLang === 'en' ? 'Security Mode:' : 'Chế độ an ninh:'}</label>
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="setAlarmState(1)" class="py-3 px-4 text-xs font-semibold rounded-xl border transition ${isArmed ? 'bg-red-600 border-red-400 text-white shadow-lg shadow-red-500/30' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
+                ${currentLang === 'en' ? 'Arm System' : 'Bật bảo vệ'}
+              </button>
+              <button onclick="setAlarmState(0)" class="py-3 px-4 text-xs font-semibold rounded-xl border transition ${!isArmed ? 'bg-slate-700 border-slate-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
+                ${currentLang === 'en' ? 'Disarm' : 'Tắt bảo vệ'}
+              </button>
+            </div>
+
+            <div class="pt-3 border-t border-slate-800">
+              <button onclick="triggerMotionSimulation()" ${!isArmed ? 'disabled' : ''} class="w-full py-3 px-4 text-xs font-bold rounded-xl border transition flex items-center justify-center gap-2 ${isArmed ? 'bg-amber-600/20 border-amber-500/50 text-amber-300 hover:bg-amber-600/30 cursor-pointer' : 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed'}">
+                <i data-lucide="footprints" class="w-4 h-4"></i>
+                <span>${currentLang === 'en' ? 'Trigger Motion (Simulate Intruder)' : 'Mô phỏng phát hiện chuyển động'}</span>
+              </button>
+            </div>
           </div>
         `;
-      } else if (type === 'light') {
+      } 
+      else if (type === 'env') {
+        title.textContent = currentLang === 'en' ? "Environment & DHT Sensor" : "Môi trường & Cảm biến DHT";
+        body.innerHTML = `
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-4">
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-400">${currentLang === 'en' ? 'Temperature:' : 'Nhiệt độ:'}</span>
+              <span class="text-lg font-bold text-amber-400">${data.temp} °C</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-xs text-slate-400">${currentLang === 'en' ? 'Humidity:' : 'Độ ẩm:'}</span>
+              <span class="text-lg font-bold text-cyan-400">${data.humidity} %</span>
+            </div>
+          </div>
+        `;
+      } 
+      else if (type === 'light') {
         title.textContent = currentLang === 'en' ? "Smart Lighting Control" : "Chiếu sáng thông minh";
+        const mode = data.lightMode || 'AUTO';
         body.innerHTML = `
           <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
             <div class="text-sm font-semibold text-slate-300">${currentLang === 'en' ? 'Active Mode:' : 'Chế độ hiện tại:'}</div>
-            <div class="text-xl font-bold text-yellow-300">Mode: ${data.lightMode || 'AUTO'}</div>
-            <p class="text-xs text-slate-400">${currentLang === 'en' ? 'Auto turns on when ambient light < 30%' : 'Tự động bật khi ánh sáng < 30%'}</p>
+            <div class="text-xl font-bold text-yellow-300">${mode}</div>
           </div>
-          <div class="space-y-2">
-            <label class="text-xs font-medium text-slate-300">${currentLang === 'en' ? 'Select Lighting Mode:' : 'Chọn chế độ điều khiển:'}</label>
-            <div class="grid grid-cols-3 gap-2">
-              <button onclick="alert('${currentLang === 'en' ? 'Switched to Auto' : 'Chuyển Auto'}')" class="py-2.5 text-xs font-semibold rounded-xl bg-sky-600/20 border border-sky-500/40 text-sky-300">Auto</button>
-              <button onclick="alert('${currentLang === 'en' ? 'Switched to Manual ON' : 'Bật thủ công'}')" class="py-2.5 text-xs font-semibold rounded-xl bg-slate-800 border border-slate-700 text-slate-300">ON</button>
-              <button onclick="alert('${currentLang === 'en' ? 'Switched to Manual OFF' : 'Tắt thủ công'}')" class="py-2.5 text-xs font-semibold rounded-xl bg-slate-800 border border-slate-700 text-slate-300">OFF</button>
-            </div>
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="setLightMode('AUTO')" class="py-2.5 text-xs font-semibold rounded-xl border ${mode === 'AUTO' ? 'bg-yellow-600/30 border-yellow-500 text-yellow-300' : 'bg-slate-800 border-slate-700 text-slate-300'}">AUTO</button>
+            <button onclick="setLightMode('ON')" class="py-2.5 text-xs font-semibold rounded-xl border ${mode === 'ON' ? 'bg-yellow-600/30 border-yellow-500 text-yellow-300' : 'bg-slate-800 border-slate-700 text-slate-300'}">ON</button>
+            <button onclick="setLightMode('OFF')" class="py-2.5 text-xs font-semibold rounded-xl border ${mode === 'OFF' ? 'bg-yellow-600/30 border-yellow-500 text-yellow-300' : 'bg-slate-800 border-slate-700 text-slate-300'}">OFF</button>
           </div>
         `;
       }
       lucide.createIcons();
+    }
+
+    function setDoorState(state) {
+      window.latestSensorData.door = state;
+      document.getElementById('json-preview').textContent = JSON.stringify(window.latestSensorData, null, 2);
+      appendLog(state === 'OPEN' ? 'Servo Door command executed: OPEN (90°)' : 'Servo Door command executed: CLOSED (0°)');
+      renderDrawerContent('door');
+    }
+
+    function setAlarmState(state) {
+      window.latestSensorData.alarmArmed = state;
+      document.getElementById('json-preview').textContent = JSON.stringify(window.latestSensorData, null, 2);
+      appendLog(state === 1 ? 'Ultrasonic Security System: ARMED' : 'Ultrasonic Security System: DISARMED');
+      renderDrawerContent('alarm');
+    }
+
+    function triggerMotionSimulation() {
+      if (window.latestSensorData.alarmArmed !== 1) return;
+      const distance = Math.floor(Math.random() * 15) + 10;
+      appendLog(`⚠️ MOTION ALARM! Intruder detected by HC-SR04 at ${distance}cm range!`);
+    }
+
+    function setLightMode(mode) {
+      window.latestSensorData.lightMode = mode;
+      document.getElementById('json-preview').textContent = JSON.stringify(window.latestSensorData, null, 2);
+      appendLog(`Lighting mode updated: ${mode}`);
+      renderDrawerContent('light');
     }
 
     function closePanel() {
