@@ -48,7 +48,6 @@
       </div>
       <div>
         <h1 id="header-main-title" class="text-xl font-bold tracking-tight text-white">Smart Home & Security Hub</h1>
-        <p id="header-sub-title" class="text-xs text-slate-400">SSD Mobilenet V1 & High-Precision AI Engine</p>
       </div>
     </div>
 
@@ -111,7 +110,6 @@
           <span id="realtime-clock" class="font-mono text-sky-300 font-medium">--:--:--</span>
           <span id="time-mode-badge" class="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300">MORNING</span>
         </div>
-        <span class="text-sky-400">Quy Nhon Live Sync</span>
       </div>
     </div>
 
@@ -252,7 +250,6 @@
 
   <!-- SCRIPT CORE LOGIC -->
   <script>
-    // 1. CẤU HÌNH FIREBASE REALTIME DATABASE (ĐỔI THÔNG SỐ CỦA BẠN VÀO ĐÂY)
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -264,15 +261,17 @@
     };
 
     let db = null;
+    let lastHardwareDataTimestamp = 0;
+
     try {
       if (typeof firebase !== 'undefined') {
         firebase.initializeApp(firebaseConfig);
         db = firebase.database();
         
-        // Lắng nghe dữ liệu cảm biến thực tế từ nhánh /sensors
         db.ref('/sensors').on('value', (snapshot) => {
           const data = snapshot.val();
           if (data) {
+            lastHardwareDataTimestamp = Date.now();
             window.latestSensorData = { ...window.latestSensorData, ...data };
             document.getElementById('json-preview').textContent = JSON.stringify(window.latestSensorData, null, 2);
             
@@ -281,8 +280,11 @@
             if (hwStatusText) hwStatusText.textContent = currentLang === 'en' ? "Hardware: Connected" : "Mạch: Đã kết nối";
             if (hwStatusDot) hwStatusDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
 
-            if (data.temp && data.humidity) {
+            if (data.temp !== undefined && data.humidity !== undefined) {
               updateOuterAIAdvisor({ temp: data.temp, humidity: data.humidity });
+              if (currentActiveDrawerType === 'env') {
+                renderDrawerContent('env');
+              }
             }
           }
         });
@@ -290,6 +292,19 @@
     } catch(e) {
       console.warn("Firebase Init Error (Using Offline/Demo Mode):", e);
     }
+
+    // THỜI GIAN CHECK HEARTBEAT ĐÃ ĐƯỢC TĂNG LÊN 60 GIÂY (60000ms)
+    setInterval(() => {
+      const hwStatusText = document.getElementById('hw-status-text');
+      const hwStatusDot = document.getElementById('hw-status-dot');
+      if (!hwStatusText || !hwStatusDot) return;
+
+      const now = Date.now();
+      if (now - lastHardwareDataTimestamp > 60000) { 
+        hwStatusText.textContent = currentLang === 'en' ? "Hardware: Disconnected" : "Mạch: Chưa kết nối";
+        hwStatusDot.className = "w-2 h-2 rounded-full bg-red-500 animate-ping";
+      }
+    }, 2000);
 
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbytt7aF1jrgIaLacEmc_qbNO_z1TGP0LIsOVFxDGcmcev5UM9-EeS7RPnBHYmwWs2J_/exec";
 
@@ -340,7 +355,6 @@
     const translations = {
       en: {
         mainTitle: "Smart Home & Security Hub",
-        headerSub: "SSD Mobilenet V1 & High-Precision AI Engine",
         hwStatus: "Hardware: Disconnected",
         aiLoading: "AI Neural Model: Loading...",
         aiReady: "AI Model: SSD Mobilenet V1 Ready",
@@ -370,7 +384,6 @@
       },
       vi: {
         mainTitle: "Trung Tâm Điều Khiển & An Ninh Nhà Thông Minh",
-        headerSub: "Nền tảng Nhận Diện AI SSD Mobilenet V1 (Độ Chính Xác Cao)",
         hwStatus: "Mạch: Chưa kết nối",
         aiLoading: "Mô hình AI: Đang tải...",
         aiReady: "Mô hình AI: SSD Mobilenet V1 Sẵn sàng",
@@ -462,10 +475,9 @@
     function updateTexts() {
       const t = translations[currentLang];
       document.getElementById('header-main-title').textContent = t.mainTitle;
-      document.getElementById('header-sub-title').textContent = t.headerSub;
       
       const hwStatusText = document.getElementById('hw-status-text');
-      if (hwStatusText && hwStatusText.textContent.includes("Disconnected") || hwStatusText.textContent.includes("Chưa kết nối")) {
+      if (hwStatusText && (hwStatusText.textContent.includes("Disconnected") || hwStatusText.textContent.includes("Chưa kết nối"))) {
         hwStatusText.textContent = t.hwStatus;
       }
       
@@ -521,12 +533,16 @@
         let temp = 28;
         let hum = 75;
 
-        if (dataApi && dataApi.hourly && dataApi.hourly.temperature_2m) {
+        if (i === 0) {
+          // Ô "Now" luôn đồng bộ 100% dữ liệu thực từ mạch ESP8266/Firebase
+          temp = Math.round(window.latestSensorData.temp);
+          hum = Math.round(window.latestSensorData.humidity);
+        } else if (dataApi && dataApi.hourly && dataApi.hourly.temperature_2m) {
           temp = Math.round(dataApi.hourly.temperature_2m[targetHour] || (27 + i));
           hum = Math.round(dataApi.hourly.relative_humidity_2m[targetHour] || (75 - i));
         } else {
-          temp = 28 - (i > 3 ? 2 : i);
-          hum = 75 + (i * 2);
+          temp = Math.round(window.latestSensorData.temp) - (i > 3 ? 2 : i);
+          hum = Math.round(window.latestSensorData.humidity) + (i * 2);
         }
 
         window.hourlyForecastData.push({
@@ -543,10 +559,6 @@
         const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=13.782&longitude=109.219&hourly=temperature_2m,relative_humidity_2m&current_weather=true&timezone=Asia%2FBangkok');
         const data = await response.json();
         generateDynamicForecastList(data);
-
-        window.latestSensorData.temp = window.hourlyForecastData[0].temp;
-        window.latestSensorData.humidity = window.hourlyForecastData[0].humidity;
-        document.getElementById('json-preview').textContent = JSON.stringify(window.latestSensorData, null, 2);
 
         updateOuterAIAdvisor(window.hourlyForecastData[0]);
       } catch (err) {
@@ -1095,23 +1107,21 @@
 
         if (hasStranger) {
           const now = Date.now();
-          // Chỉ kích hoạt còi phần cứng mỗi 5 giây 1 lần để tránh nghẽn lệnh
           if (now - lastNotificationTime >= 5000) {
             lastNotificationTime = now;
             
-            // GỬI DUY NHẤT LỆNH BÁO ĐỘNG LÊN FIREBASE ĐỂ KÍCH HOẠT CÒI PHẦN CỨNG
             if (db) {
               db.ref('/controls/alarm').set('INTRUDER');
             }
-          }
 
-          const strangerTitle = currentLang === 'en' ? `Stranger Alert (${new Date().toLocaleTimeString('en-US')})` : `Cảnh báo người lạ (${new Date().toLocaleTimeString('vi-VN')})`;
-          const logMsg = currentLang === 'en'
-            ? `🚨 <b>AI ALARM: STRANGER DETECTED!</b> -> Hardware Buzzer Triggered`
-            : `🚨 <b>BÁO ĐỘNG AI: Phát hiện NGƯỜI LẠ!</b> -> Đã kích hoạt còi Buzzer trên mạch`;
-          appendLog(logMsg, snapshotUrl);
-          
-          saveStrangerLogToDrive(strangerTitle, snapshotUrl);
+            const strangerTitle = currentLang === 'en' ? `Stranger Alert (${new Date().toLocaleTimeString('en-US')})` : `Cảnh báo người lạ (${new Date().toLocaleTimeString('vi-VN')})`;
+            const logMsg = currentLang === 'en'
+              ? `🚨 <b>AI ALARM: STRANGER DETECTED!</b> -> Hardware Buzzer Triggered`
+              : `🚨 <b>BÁO ĐỘNG AI: Phát hiện NGƯỜI LẠ!</b> -> Đã kích hoạt còi Buzzer trên mạch`;
+            appendLog(logMsg, snapshotUrl);
+            
+            saveStrangerLogToDrive(strangerTitle, snapshotUrl);
+          }
         }
 
       }, 1500);
@@ -1119,7 +1129,7 @@
 
     async function saveStrangerLogToDrive(strangerTitle, base64Img) {
       const now = Date.now();
-      if (now - lastStrangerUploadTime < 10000) {
+      if (now - lastStrangerUploadTime < 5000) {
         return;
       }
       lastStrangerUploadTime = now;
@@ -1260,13 +1270,12 @@
 
     function triggerMobilePushNotification(msg) {
       const now = Date.now();
-      if (now - lastNotificationTime >= 10000) {
+      if (now - lastNotificationTime >= 5000) {
         lastNotificationTime = now;
         alert(`📱 [SECURITY ALARM]\n\n${msg}\nTime: ${new Date().toLocaleTimeString()}`);
       }
     }
 
-    // ĐỒNG BỘ NÚT ĐIỀU KHIỂN CỬA VÀO FIREBASE
     function setDoorState(state, forceRender = false) {
       window.latestSensorData.door = state;
       const jsonPreview = document.getElementById('json-preview');
@@ -1275,7 +1284,7 @@
       }
       
       if (db) {
-        db.ref('/controls/door').set(state); // Bắn lệnh trực tiếp lên Firebase Cloud
+        db.ref('/controls/door').set(state);
       }
       
       if (forceRender) {
@@ -1283,13 +1292,12 @@
       }
     }
 
-    // ĐỒNG BỘ NÚT ĐIỀU KHIỂN ĐÈN VÀO FIREBASE
     function setLightMode(mode) {
       window.latestSensorData.lightMode = mode;
       document.getElementById('json-preview').textContent = JSON.stringify(window.latestSensorData, null, 2);
       
       if (db) {
-        db.ref('/controls/lightMode').set(mode); // Bắn lệnh trực tiếp lên Firebase Cloud
+        db.ref('/controls/lightMode').set(mode);
       }
 
       appendLog(`Lighting mode updated: ${mode} [Firebase Realtime]`);
