@@ -1094,13 +1094,23 @@
         }
 
         if (hasStranger) {
-          if (db) db.ref('/controls/alarm').set('INTRUDER');
+          const now = Date.now();
+          // Chỉ kích hoạt còi phần cứng mỗi 5 giây 1 lần để tránh nghẽn lệnh
+          if (now - lastNotificationTime >= 5000) {
+            lastNotificationTime = now;
+            
+            // GỬI DUY NHẤT LỆNH BÁO ĐỘNG LÊN FIREBASE ĐỂ KÍCH HOẠT CÒI PHẦN CỨNG
+            if (db) {
+              db.ref('/controls/alarm').set('INTRUDER');
+            }
+          }
+
           const strangerTitle = currentLang === 'en' ? `Stranger Alert (${new Date().toLocaleTimeString('en-US')})` : `Cảnh báo người lạ (${new Date().toLocaleTimeString('vi-VN')})`;
           const logMsg = currentLang === 'en'
-            ? `🚨 <b>AI ALARM: STRANGER DETECTED!</b> -> Uploading to Drive (10s Cooldown)`
-            : `🚨 <b>BÁO ĐỘNG AI: Phát hiện NGƯỜI LẠ!</b> -> Gửi ảnh Drive (Chu kỳ 10s)`;
+            ? `🚨 <b>AI ALARM: STRANGER DETECTED!</b> -> Hardware Buzzer Triggered`
+            : `🚨 <b>BÁO ĐỘNG AI: Phát hiện NGƯỜI LẠ!</b> -> Đã kích hoạt còi Buzzer trên mạch`;
           appendLog(logMsg, snapshotUrl);
-          triggerMobilePushNotification(currentLang === 'en' ? `SECURITY ALARM: Stranger detected at door!` : `CẢNH BÁO AN NINH: Phát hiện người lạ trước cửa!`);
+          
           saveStrangerLogToDrive(strangerTitle, snapshotUrl);
         }
 
