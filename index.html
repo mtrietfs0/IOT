@@ -3,9 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Smart Home & Security Hub - 3D Interactive</title>
+  <title>Smart Home & Security Hub - Real AI Recognition</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- TÍCH HỢP AI FACE-API.JS QUA CDN -->
+  <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+  
+  <!-- FIREBASE REALTIME DATABASE SDK V8 -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
     body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -41,22 +48,22 @@
       </div>
       <div>
         <h1 id="header-main-title" class="text-xl font-bold tracking-tight text-white">Smart Home & Security Hub</h1>
-        <p id="header-sub-title" class="text-xs text-slate-400">Arduino Serial Control & Monitoring Platform</p>
+        <p id="header-sub-title" class="text-xs text-slate-400">SSD Mobilenet V1 & High-Precision AI Engine</p>
       </div>
     </div>
 
     <div class="flex items-center gap-3 text-xs font-medium">
       <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-300">
-        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+        <span id="hw-status-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
         <span id="hw-status-text">Hardware: Disconnected</span>
       </div>
       <div class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-700 text-sky-300">
-        <span id="firebase-dot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        <span id="fb-status-text">Firebase: Connected</span>
+        <span id="ai-model-status" class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+        <span id="ai-status-text">AI Neural Model: Loading...</span>
       </div>
       <button onclick="toggleLanguage()" class="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-sky-600/20 border border-sky-500/40 text-sky-300 hover:bg-sky-600/30 transition font-semibold">
         <i data-lucide="languages" class="w-3.5 h-3.5"></i>
-        <span id="lang-btn-text">VI / EN</span>
+        <span id="lang-btn-text">ENGLISH</span>
       </button>
     </div>
   </header>
@@ -69,10 +76,9 @@
       <div class="flex items-center justify-between mb-3 z-10 px-1">
         <h2 id="model-title" class="text-sm font-semibold text-slate-200">3D Smart House Spatial Model</h2>
         <div class="flex items-center gap-2">
-          <!-- NÚT MÔ PHỎNG TEST MỐC THỜI GIAN/NHIỆT ĐỘ GỌN GÀNG -->
-          <button onclick="cycleTimePreset()" title="Click to test time & temperature presets" class="px-3 py-1 rounded-lg bg-sky-600/20 hover:bg-sky-600/30 text-xs font-semibold text-sky-300 border border-sky-500/40 transition flex items-center gap-1.5">
+          <button onclick="cycleTimePreset()" title="Click to test lighting presets" class="px-3 py-1 rounded-lg bg-sky-600/20 hover:bg-sky-600/30 text-xs font-semibold text-sky-300 border border-sky-500/40 transition flex items-center gap-1.5">
             <i data-lucide="sun-medium" class="w-3.5 h-3.5"></i>
-            <span id="test-light-btn">Test: Morning (33°C)</span>
+            <span id="test-light-btn">Test: Morning</span>
           </button>
           <span id="model-badge" class="px-3 py-1 rounded-full bg-sky-500/10 border border-sky-500/30 text-xs text-sky-300 font-medium">3D Interactive</span>
         </div>
@@ -94,23 +100,22 @@
           <i data-lucide="lightbulb" class="w-4 h-4 text-yellow-300"></i> <span id="btn-light-label">Smart Lighting (Auto)</span>
         </button>
 
-        <button onclick="openPanel('alarm')" class="absolute top-[18%] right-[10%] flex items-center gap-2 px-3.5 py-2 rounded-full bg-red-950/90 border-2 border-red-400 text-red-200 text-xs font-semibold btn-hotspot hover:bg-red-900 transition shadow-2xl z-20 focus:outline-none">
-          <i data-lucide="radar" class="w-4 h-4 text-red-300"></i> <span id="btn-alarm-label">Ultrasonic Intrusion Sensor</span>
+        <button onclick="openPanel('camera')" class="absolute top-[18%] right-[10%] flex items-center gap-2 px-3.5 py-2 rounded-full bg-red-950/90 border-2 border-red-400 text-red-200 text-xs font-semibold btn-hotspot hover:bg-red-900 transition shadow-2xl z-20 focus:outline-none">
+          <i data-lucide="camera" class="w-4 h-4 text-red-300"></i> <span id="btn-alarm-label">AI Security Camera</span>
         </button>
       </div>
 
-      <!-- ĐỒNG HỒ THỜI GIAN THỰC LẤY CHÍNH XÁC GIỜ HỆ THỐNG MÁY TÍNH -->
       <div class="flex items-center justify-between text-xs text-slate-400 z-10 pt-2 px-1">
         <div class="flex items-center gap-2">
           <span class="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
           <span id="realtime-clock" class="font-mono text-sky-300 font-medium">--:--:--</span>
           <span id="time-mode-badge" class="px-2 py-0.5 rounded bg-slate-800 text-[10px] text-slate-300">MORNING</span>
         </div>
-        <span class="text-sky-400">4 Zones Connected</span>
+        <span class="text-sky-400">Quy Nhon Live Sync</span>
       </div>
     </div>
 
-    <!-- CỘT PHẢI: SYSTEM STATUS & BỘ PHÂN TÍCH AI (100% MẶC ĐỊNH TIẾNG ANH) -->
+    <!-- CỘT PHẢI: SYSTEM STATUS & BỘ PHÂN TÍCH AI -->
     <div class="flex flex-col gap-4">
       <div class="glass-card rounded-2xl p-5 flex flex-col justify-between flex-1">
         <div class="flex items-center justify-between text-slate-400 mb-2">
@@ -123,8 +128,8 @@
             <span class="font-mono text-sky-300">Arduino Board</span>
           </div>
           <div class="flex justify-between py-1.5 border-b border-slate-800">
-            <span id="label-serial" class="text-slate-400">Serial Protocol:</span>
-            <span class="font-mono text-cyan-300">USB Bridge</span>
+            <span id="label-serial" class="text-slate-400">AI Framework:</span>
+            <span class="font-mono text-cyan-300">SSD Mobilenet V1 / Face-API</span>
           </div>
           <div class="flex justify-between py-1.5">
             <span id="label-cloud" class="text-slate-400">Cloud Sync:</span>
@@ -133,24 +138,24 @@
         </div>
       </div>
 
-      <!-- CARD PHÂN TÍCH AI CHUẨN ENGLISH MẶC ĐỊNH -->
+      <!-- CARD AI CỐ ĐỊNH MỐC GIỜ HIỆN TẠI -->
       <div class="glass-card rounded-2xl p-5 border-l-4 border-l-sky-400 space-y-3">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2 text-sky-400">
             <i data-lucide="brain-circuit" class="w-4 h-4"></i>
-            <h3 id="ai-card-title" class="text-xs font-bold uppercase tracking-wider">AI Climate Advisor</h3>
+            <h3 id="ai-card-title" class="text-xs font-bold uppercase tracking-wider">AI Climate Advisor (Current)</h3>
           </div>
-          <span id="ai-status-tag" class="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-semibold">Hot & Dry</span>
+          <span id="ai-status-tag" class="px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 text-[10px] font-semibold">Live Quy Nhon</span>
         </div>
 
         <div class="grid grid-cols-2 gap-2 text-xs bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
           <div>
             <span id="ai-label-temp" class="text-slate-400 text-[11px]">Temperature:</span>
-            <p id="ai-temp-val" class="font-bold text-amber-400 text-sm">33.0 °C</p>
+            <p id="ai-temp-val" class="font-bold text-amber-400 text-sm">-- °C</p>
           </div>
           <div>
             <span id="ai-label-hum" class="text-slate-400 text-[11px]">Humidity:</span>
-            <p id="ai-humidity-val" class="font-bold text-cyan-400 text-sm">40 %</p>
+            <p id="ai-humidity-val" class="font-bold text-cyan-400 text-sm">-- %</p>
           </div>
         </div>
 
@@ -160,7 +165,7 @@
               <i data-lucide="footprints" class="w-3.5 h-3.5"></i>
               <span id="ai-outdoor-title">Going Outdoors Advice:</span>
             </p>
-            <p id="ai-outdoor-text" class="text-slate-300 leading-relaxed text-[11px]">--</p>
+            <p id="ai-outdoor-text" class="text-slate-300 leading-relaxed text-[11px]">Fetching live weather data...</p>
           </div>
 
           <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800">
@@ -168,7 +173,7 @@
               <i data-lucide="home" class="w-3.5 h-3.5"></i>
               <span id="ai-indoor-title">Staying Indoors Advice:</span>
             </p>
-            <p id="ai-indoor-text" class="text-slate-300 leading-relaxed text-[11px]">--</p>
+            <p id="ai-indoor-text" class="text-slate-300 leading-relaxed text-[11px]">Fetching live weather data...</p>
           </div>
         </div>
       </div>
@@ -181,11 +186,11 @@
     <div class="lg:col-span-2 glass-card rounded-2xl p-5">
       <h3 id="logs-title" class="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
         <i data-lucide="clock-3" class="w-4 h-4 text-sky-400"></i>
-        Recent System Logs
+        Recent System Logs & AI Security Captures
       </h3>
-      <div id="logs-container" class="space-y-2.5 text-xs max-h-40 overflow-y-auto pr-1">
+      <div id="logs-container" class="space-y-2.5 text-xs max-h-48 overflow-y-auto pr-1">
         <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/50 border border-slate-800">
-          <span>3D Smart House model successfully initialized</span>
+          <span id="init-log-text">Real AI Neural Model & 3D System initialized</span>
           <span id="init-log-time" class="text-slate-500 font-mono">--:--:--</span>
         </div>
       </div>
@@ -194,15 +199,15 @@
     <div class="glass-card rounded-2xl p-5">
       <h3 id="json-title" class="text-sm font-semibold text-slate-200 mb-3 flex items-center gap-2">
         <i data-lucide="terminal" class="w-4 h-4 text-slate-400"></i>
-        JSON Telemetry Payload
+        JSON Telemetry Payload (Firebase)
       </h3>
       <pre id="json-preview" class="bg-slate-950/80 p-3 rounded-lg border border-slate-800 text-[11px] text-sky-300 font-mono overflow-x-auto leading-relaxed">
 {
-  "temp": 33.0,
-  "humidity": 40,
+  "temp": 28.0,
+  "humidity": 75,
   "light": 85,
   "door": "CLOSED",
-  "alarmArmed": 0
+  "cameraState": "ACTIVE"
 }</pre>
     </div>
   </section>
@@ -210,7 +215,7 @@
   <!-- POP-UP SIDE DRAWER -->
   <div id="drawer-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden transition-opacity opacity-0" onclick="closePanel()"></div>
   
-  <aside id="control-drawer" class="fixed top-0 right-0 h-full w-full sm:w-[420px] glass-panel z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col p-6 overflow-y-auto">
+  <aside id="control-drawer" class="fixed top-0 right-0 h-full w-full sm:w-[480px] glass-panel z-50 shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col p-6 overflow-y-auto">
     <div class="flex items-center justify-between pb-4 border-b border-slate-800 mb-6">
       <div class="flex items-center gap-3">
         <div id="drawer-icon-box" class="p-2 rounded-xl bg-sky-500/20 text-sky-400 border border-sky-500/30">
@@ -233,76 +238,168 @@
     </div>
   </aside>
 
-  <!-- Script Core -->
+  <!-- MODAL SNAPSHOT -->
+  <div id="image-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="glass-card p-4 rounded-2xl max-w-md w-full space-y-3 border border-sky-500/30">
+      <div class="flex justify-between items-center pb-2 border-b border-slate-800">
+        <h4 id="modal-img-title" class="text-sm font-bold text-sky-400">Captured Face Snapshot</h4>
+        <button onclick="closeImageModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <img id="modal-img-element" src="" class="w-full h-64 object-cover rounded-xl border border-slate-700" alt="Captured Face">
+      <p id="modal-img-desc" class="text-xs text-slate-300"></p>
+    </div>
+  </div>
+
+  <!-- SCRIPT CORE LOGIC -->
   <script>
-    let currentLang = 'en'; // Mặc định mở ra 100% tiếng Anh
-    
+    // 1. CẤU HÌNH FIREBASE REALTIME DATABASE (ĐỔI THÔNG SỐ CỦA BẠN VÀO ĐÂY)
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      databaseURL: "https://smarthome-iot-fcd36-default-rtdb.asia-southeast1.firebasedatabase.app/",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "SENDER_ID",
+      appId: "APP_ID"
+    };
+
+    let db = null;
+    try {
+      if (typeof firebase !== 'undefined') {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        
+        // Lắng nghe dữ liệu cảm biến thực tế từ nhánh /sensors
+        db.ref('/sensors').on('value', (snapshot) => {
+          const data = snapshot.val();
+          if (data) {
+            window.latestSensorData = { ...window.latestSensorData, ...data };
+            document.getElementById('json-preview').textContent = JSON.stringify(window.latestSensorData, null, 2);
+            
+            const hwStatusText = document.getElementById('hw-status-text');
+            const hwStatusDot = document.getElementById('hw-status-dot');
+            if (hwStatusText) hwStatusText.textContent = currentLang === 'en' ? "Hardware: Connected" : "Mạch: Đã kết nối";
+            if (hwStatusDot) hwStatusDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+
+            if (data.temp && data.humidity) {
+              updateOuterAIAdvisor({ temp: data.temp, humidity: data.humidity });
+            }
+          }
+        });
+      }
+    } catch(e) {
+      console.warn("Firebase Init Error (Using Offline/Demo Mode):", e);
+    }
+
+    const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbytt7aF1jrgIaLacEmc_qbNO_z1TGP0LIsOVFxDGcmcev5UM9-EeS7RPnBHYmwWs2J_/exec";
+
+    let currentLang = localStorage.getItem('smart_home_lang') || 'en';
+    let isAiModelsLoaded = false;
+    let currentActiveDrawerType = null;
+
     let timePresets = [
-      { id: 'morning', nameEn: 'Morning (33°C)', nameVi: 'Sáng (33°C)', temp: 33, humidity: 40, bgClass: 'lighting-morning' },
-      { id: 'afternoon', nameEn: 'Afternoon (30°C)', nameVi: 'Chiều (30°C)', temp: 30, humidity: 65, bgClass: 'lighting-noon' },
-      { id: 'evening', nameEn: 'Night (25°C)', nameVi: 'Tối (25°C)', temp: 25, humidity: 75, bgClass: 'lighting-evening' }
+      { id: 'morning', nameEn: 'Morning', nameVi: 'Sáng', bgClass: 'lighting-morning' },
+      { id: 'afternoon', nameEn: 'Afternoon', nameVi: 'Trưa', bgClass: 'lighting-noon' },
+      { id: 'evening', nameEn: 'Night', nameVi: 'Tối', bgClass: 'lighting-evening' }
     ];
     let currentPresetIdx = 0;
 
-    window.latestSensorData = { 
-      temp: 33.0, 
-      humidity: 40, 
-      light: 85, 
-      door: "CLOSED", 
-      alarmArmed: 0, 
-      lightMode: "AUTO" 
-    };
+    window.latestSensorData = { temp: 28.0, humidity: 75, light: 85, door: "CLOSED", cameraState: "ACTIVE" };
+    window.hourlyForecastData = []; 
+    
+    function loadRegisteredMembers() {
+      const saved = localStorage.getItem('smart_home_ai_faces');
+      return saved ? JSON.parse(saved) : [];
+    }
+
+    function saveRegisteredMembers(list) {
+      localStorage.setItem('smart_home_ai_faces', JSON.stringify(list));
+      window.registeredFaceDB = list;
+    }
+
+    window.registeredFaceDB = loadRegisteredMembers();
+
+    async function loadRealAiModels() {
+      const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+      try {
+        await Promise.all([
+          faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
+          faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+          faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+        ]);
+        isAiModelsLoaded = true;
+        document.getElementById('ai-model-status').className = 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse';
+        document.getElementById('ai-status-text').textContent = currentLang === 'en' ? 'AI Model: SSD Mobilenet V1 Ready' : 'Mô hình AI: SSD Mobilenet V1 Sẵn sàng';
+        appendLog(currentLang === 'en' ? "🧠 <b>AI High-Precision Engine:</b> Initialized SSD Mobilenet V1 128-Vector extraction." : "🧠 <b>Hệ thống AI độ chính xác cao:</b> Đã khởi chạy SSD Mobilenet V1 trích xuất 128 Vector.");
+      } catch (err) {
+        console.error("AI Model Load Error:", err);
+        document.getElementById('ai-status-text').textContent = currentLang === 'en' ? 'AI Model: Load Failed' : 'Mô hình AI: Lỗi tải dữ liệu';
+      }
+    }
 
     const translations = {
       en: {
-        headerSub: "Arduino Serial Control & Monitoring Platform",
+        mainTitle: "Smart Home & Security Hub",
+        headerSub: "SSD Mobilenet V1 & High-Precision AI Engine",
         hwStatus: "Hardware: Disconnected",
-        fbStatus: "Firebase: Connected",
+        aiLoading: "AI Neural Model: Loading...",
+        aiReady: "AI Model: SSD Mobilenet V1 Ready",
         modelTitle: "3D Smart House Spatial Model",
         modelBadge: "3D Interactive",
         btnDoor: "Access Control (Servo)",
         btnEnv: "Environment & LDR",
-        btnAlarm: "Ultrasonic Intrusion Sensor",
+        btnAlarm: "AI Security Camera",
         btnLight: "Smart Lighting (Auto)",
         sysStatus: "System Status",
         labelMcu: "Microcontroller:",
-        labelSerial: "Serial Protocol:",
+        labelSerial: "AI Framework:",
         labelCloud: "Cloud Sync:",
-        logsTitle: "Recent System Logs",
-        jsonTitle: "JSON Telemetry Payload",
+        aiCardTitle: "AI Climate Advisor (Current)",
+        aiStatusTag: "Live Quy Nhon",
+        logsTitle: "Recent System Logs & AI Security Captures",
+        initLogText: "Real AI Neural Model & 3D System initialized",
+        jsonTitle: "JSON Telemetry Payload (Firebase)",
         drawerTitle: "Device Control Panel",
         drawerSub: "Direct hardware management",
         aiLabelTemp: "Temperature:",
         aiLabelHum: "Humidity:",
         aiOutdoorTitle: "Going Outdoors Advice:",
-        aiIndoorTitle: "Staying Indoors Advice:"
+        aiIndoorTitle: "Staying Indoors Advice:",
+        viewCapture: "📷 View Capture",
+        langBtn: "ENGLISH"
       },
       vi: {
-        headerSub: "Nền tảng Giám sát & Điều khiển qua Arduino Serial",
+        mainTitle: "Trung Tâm Điều Khiển & An Ninh Nhà Thông Minh",
+        headerSub: "Nền tảng Nhận Diện AI SSD Mobilenet V1 (Độ Chính Xác Cao)",
         hwStatus: "Mạch: Chưa kết nối",
-        fbStatus: "Firebase: Đã kết nối",
+        aiLoading: "Mô hình AI: Đang tải...",
+        aiReady: "Mô hình AI: SSD Mobilenet V1 Sẵn sàng",
         modelTitle: "Mô hình không gian 3D nhà thông minh",
         modelBadge: "Chế độ 3D tương tác",
         btnDoor: "Cửa ra vào (Servo)",
         btnEnv: "Môi trường & LDR",
-        btnAlarm: "Cảm biến siêu âm",
+        btnAlarm: "Camera AI Nhận Diện",
         btnLight: "Chiếu sáng Auto",
         sysStatus: "Trạng thái hệ thống",
         labelMcu: "Vi điều khiển:",
-        labelSerial: "Giao tiếp Serial:",
+        labelSerial: "Khung AI:",
         labelCloud: "Đồng bộ đám mây:",
-        logsTitle: "Nhật ký hệ thống gần nhất",
-        jsonTitle: "Cấu trúc dữ liệu JSON",
+        aiCardTitle: "Cố Vấn Thời Tiết AI (Hiện Tại)",
+        aiStatusTag: "Trực Tiếp Quy Nhơn",
+        logsTitle: "Nhật ký hệ thống & Hình ảnh quét được",
+        initLogText: "Mô hình Nơ-ron AI & Hệ thống 3D đã khởi tạo thành công",
+        jsonTitle: "Cấu trúc dữ liệu JSON (Firebase)",
         drawerTitle: "Bảng điều khiển thiết bị",
         drawerSub: "Quản lý phần cứng trực tiếp",
         aiLabelTemp: "Nhiệt độ:",
         aiLabelHum: "Độ ẩm:",
         aiOutdoorTitle: "Khi ra ngoài đường:",
-        aiIndoorTitle: "Khi ở trong nhà:"
+        aiIndoorTitle: "Khi ở trong nhà:",
+        viewCapture: "📷 Xem ảnh chụp",
+        langBtn: "TIẾNG VIỆT"
       }
     };
 
-    // ĐỒNG HỒ THỜI GIAN THỰC ĐỒNG BỘ GIỜ HỆ THỐNG MÁY TÍNH
     function startRealtimeClock() {
       function updateClock() {
         const now = new Date();
@@ -323,40 +420,73 @@
       setInterval(updateClock, 1000);
     }
 
-    function appendLog(message) {
+    function appendLog(message, imgUrl = null) {
       const logsContainer = document.getElementById('logs-container');
       if (!logsContainer) return;
       
       const timeStr = document.getElementById('realtime-clock') ? document.getElementById('realtime-clock').textContent : new Date().toLocaleTimeString();
       const logItem = document.createElement('div');
-      logItem.className = 'flex items-center justify-between p-2.5 rounded-lg bg-slate-900/50 border border-slate-800 animate-fadeIn';
-      logItem.innerHTML = `<span>${message}</span><span class="text-slate-500 font-mono">${timeStr}</span>`;
+      logItem.className = 'flex items-center justify-between p-2.5 rounded-lg bg-slate-900/50 border border-slate-800 animate-fadeIn text-xs';
+      
+      const btnText = translations[currentLang].viewCapture;
+      let imgBtnHtml = imgUrl ? `<button onclick="viewCapturedImage('${imgUrl}', '${message}')" class="ml-2 px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 font-semibold border border-sky-500/40 text-[10px]">${btnText}</button>` : '';
+      
+      logItem.innerHTML = `<div class="flex items-center">${message} ${imgBtnHtml}</div><span class="text-slate-500 font-mono ml-2">${timeStr}</span>`;
       
       logsContainer.insertBefore(logItem, logsContainer.firstChild);
     }
 
+    function viewCapturedImage(url, title) {
+      document.getElementById('modal-img-element').src = url;
+      document.getElementById('modal-img-desc').textContent = title;
+      document.getElementById('image-modal').classList.remove('hidden');
+    }
+
+    function closeImageModal() {
+      document.getElementById('image-modal').classList.add('hidden');
+    }
+
     function toggleLanguage() {
       currentLang = currentLang === 'en' ? 'vi' : 'en';
+      localStorage.setItem('smart_home_lang', currentLang);
       updateTexts();
       applyPreset(currentPresetIdx);
+      if (window.hourlyForecastData.length > 0) {
+        updateOuterAIAdvisor(window.hourlyForecastData[0]);
+      }
+      if (currentActiveDrawerType) {
+        renderDrawerContent(currentActiveDrawerType);
+      }
     }
 
     function updateTexts() {
       const t = translations[currentLang];
+      document.getElementById('header-main-title').textContent = t.mainTitle;
       document.getElementById('header-sub-title').textContent = t.headerSub;
-      document.getElementById('hw-status-text').textContent = t.hwStatus;
-      document.getElementById('fb-status-text').textContent = t.fbStatus;
+      
+      const hwStatusText = document.getElementById('hw-status-text');
+      if (hwStatusText && hwStatusText.textContent.includes("Disconnected") || hwStatusText.textContent.includes("Chưa kết nối")) {
+        hwStatusText.textContent = t.hwStatus;
+      }
+      
+      document.getElementById('ai-status-text').textContent = isAiModelsLoaded ? t.aiReady : t.aiLoading;
+      document.getElementById('lang-btn-text').textContent = t.langBtn;
+
       document.getElementById('model-title').textContent = t.modelTitle;
       document.getElementById('model-badge').textContent = t.modelBadge;
       document.getElementById('btn-door-label').textContent = t.btnDoor;
       document.getElementById('btn-env-label').textContent = t.btnEnv;
       document.getElementById('btn-alarm-label').textContent = t.btnAlarm;
       document.getElementById('btn-light-label').textContent = t.btnLight;
+
       document.getElementById('sys-status-title').textContent = t.sysStatus;
       document.getElementById('label-mcu').textContent = t.labelMcu;
       document.getElementById('label-serial').textContent = t.labelSerial;
       document.getElementById('label-cloud').textContent = t.labelCloud;
+
+      document.getElementById('ai-card-title').textContent = t.aiCardTitle;
       document.getElementById('logs-title').textContent = t.logsTitle;
+      document.getElementById('init-log-text').textContent = t.initLogText;
       document.getElementById('json-title').textContent = t.jsonTitle;
       document.getElementById('drawer-title').textContent = t.drawerTitle;
       document.getElementById('drawer-subtitle').textContent = t.drawerSub;
@@ -373,95 +503,155 @@
 
     function applyPreset(idx) {
       const preset = timePresets[idx];
-
-      // Cập nhật nhãn nút Test gọn gàng
       document.getElementById('test-light-btn').textContent = currentLang === 'en' ? `Test: ${preset.nameEn}` : `Test: ${preset.nameVi}`;
       document.getElementById('time-mode-badge').textContent = preset.id.toUpperCase();
-
       document.getElementById('house-bg').className = `absolute inset-0 bg-cover bg-center rounded-xl pointer-events-none ${preset.bgClass}`;
-
-      window.latestSensorData.temp = preset.temp;
-      window.latestSensorData.humidity = preset.humidity;
-      window.latestSensorData.light = preset.id === 'morning' ? 85 : (preset.id === 'afternoon' ? 65 : 20);
-
-      document.getElementById('json-preview').textContent = JSON.stringify(window.latestSensorData, null, 2);
-      appendLog(`AI Advisor analyzed preset: ${preset.nameEn}`);
-
-      updateAIAdvice(preset);
     }
 
-    function updateAIAdvice(preset) {
-      document.getElementById('ai-temp-val').textContent = `${preset.temp} °C`;
-      document.getElementById('ai-humidity-val').textContent = `${preset.humidity} %`;
+    function generateDynamicForecastList(dataApi) {
+      const now = new Date();
+      const currentHour = now.getHours();
+      window.hourlyForecastData = [];
+
+      for (let i = 0; i < 6; i++) {
+        const targetHour = (currentHour + i) % 24;
+        const timeLabel = `${String(targetHour).padStart(2, '0')}:00`;
+        const displayLabel = i === 0 ? "Now" : timeLabel;
+
+        let temp = 28;
+        let hum = 75;
+
+        if (dataApi && dataApi.hourly && dataApi.hourly.temperature_2m) {
+          temp = Math.round(dataApi.hourly.temperature_2m[targetHour] || (27 + i));
+          hum = Math.round(dataApi.hourly.relative_humidity_2m[targetHour] || (75 - i));
+        } else {
+          temp = 28 - (i > 3 ? 2 : i);
+          hum = 75 + (i * 2);
+        }
+
+        window.hourlyForecastData.push({
+          isNow: i === 0,
+          label: displayLabel,
+          temp: temp,
+          humidity: hum
+        });
+      }
+    }
+
+    async function fetchQuyNhonWeather() {
+      try {
+        const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=13.782&longitude=109.219&hourly=temperature_2m,relative_humidity_2m&current_weather=true&timezone=Asia%2FBangkok');
+        const data = await response.json();
+        generateDynamicForecastList(data);
+
+        window.latestSensorData.temp = window.hourlyForecastData[0].temp;
+        window.latestSensorData.humidity = window.hourlyForecastData[0].humidity;
+        document.getElementById('json-preview').textContent = JSON.stringify(window.latestSensorData, null, 2);
+
+        updateOuterAIAdvisor(window.hourlyForecastData[0]);
+      } catch (err) {
+        generateDynamicForecastList(null);
+        updateOuterAIAdvisor(window.hourlyForecastData[0]);
+      }
+    }
+
+    function computeAIAdvice(temp, hum, slotLabel = "Now") {
+      let apparentTemp = temp;
+      if (temp >= 27 && hum > 70) {
+        apparentTemp = temp + Math.round((hum - 70) * 0.1);
+      }
 
       let tagVi = "", tagEn = "";
-      let outdoorVi = "", outdoorEn = "";
-      let indoorVi = "", indoorEn = "";
-
-      if (preset.temp === 33) {
-        tagVi = "Nắng Nóng Khô"; tagEn = "Hot & Dry";
-        outdoorVi = "Nhiệt độ lên đến 33°C kèm độ ẩm thấp. Ra đường nên mặc áo chống nắng, mang khẩu trang, đeo kính râm và mang theo nước uống.";
-        outdoorEn = "Hot at 33°C with low humidity. Wear UV jackets, mask, sunglasses, and carry drinking water.";
-        indoorVi = "Nên kéo rèm che nắng hướng Tây/Nam, bật quạt mát và sử dụng thêm máy phun sương bù ẩm.";
-        indoorEn = "Close sun-facing blinds, use cooling fans, and run a humidifier for comfort.";
-      } 
-      else if (preset.temp === 30) {
-        tagVi = "Nắng Nhiệt Đới Oi"; tagEn = "Warm & Humid";
-        outdoorVi = "Nhiệt độ 30°C khá oi bức. Nên chọn trang phục mỏng nhẹ thoáng khí, mang theo ô/dù đề phòng mưa rào bất chợt.";
-        outdoorEn = "Warm at 30°C. Wear light breathable clothes and carry an umbrella for sudden showers.";
-        indoorVi = "Môi trường hơi oi. Nên mở quạt thông gió hoặc bật điều hòa ở mức 26-27°C.";
-        indoorEn = "Environment is warm. Run ventilation fans or set AC around 26-27°C.";
-      } 
-      else {
-        tagVi = "Mát Mẻ Dễ Chịu"; tagEn = "Cool & Pleasant";
-        outdoorVi = "Nhiệt độ hạ xuống 25°C mát mẻ. Thích hợp đi dạo ngoài trời, nếu ra đường muộn nên mang áo khoác nhẹ.";
-        outdoorEn = "Pleasant 25°C evening. Great for outdoor walks; bring a light windbreaker if late.";
-        indoorVi = "Nhiệt độ trong nhà lý tưởng. Có thể mở rộng cửa sổ để đón không khí tự nhiên trong lành.";
-        indoorEn = "Ideal indoor temperature. Open windows to allow fresh natural airflow.";
+      if (temp >= 30) {
+        tagVi = "Oi Nóng Bức Xạ"; tagEn = "Hot & High Thermal Load";
+      } else if (temp <= 22) {
+        tagVi = "Se Lạnh Ẩm"; tagEn = "Chilly & Damp Air";
+      } else if (hum >= 80) {
+        tagVi = "Mát Mẻ Nhưng Ẩm Cao"; tagEn = "Mild & High Humidity";
+      } else {
+        tagVi = "Vi Khí Hậu Lý Tưởng"; tagEn = "Optimal Microclimate";
       }
 
-      document.getElementById('ai-status-tag').textContent = currentLang === 'en' ? tagEn : tagVi;
-      document.getElementById('ai-outdoor-text').textContent = currentLang === 'en' ? outdoorEn : outdoorVi;
-      document.getElementById('ai-indoor-text').textContent = currentLang === 'en' ? indoorEn : indoorVi;
+      let outdoorVi = "", outdoorEn = "";
+      let outdoorHydrationVi = hum < 75 ? "uống đủ nước khoáng." : "bổ sung nước có khoáng chất/điện giải nhẹ.";
+      let outdoorHydrationEn = hum < 75 ? "stay hydrated with regular water." : "rehydrate with electrolyte fluids.";
+      
+      if (currentLang === 'en') {
+        outdoorEn = `[${slotLabel}] Temp at ${temp}°C (feels like ~${apparentTemp}°C) with ${hum}% relative humidity. `;
+        if (temp >= 29) {
+          outdoorEn += `UV index is high. Wear sun-protective clothing, UV-blocking sunglasses, and ${outdoorHydrationEn}`;
+        } else if (temp <= 22) {
+          outdoorEn += `Cold breeze combined with high moisture. Put on a lightweight windbreaker and keep your chest warm.`;
+        } else if (hum >= 80) {
+          outdoorEn += `Weather is cool but air saturation is high (${hum}%). Expect damp roads and sweat evaporation resistance during physical activities.`;
+        } else {
+          outdoorEn += `Great condition for commuting, jogging, or outdoor workouts. Perfect thermal balance for body movement.`;
+        }
+      } else {
+        outdoorVi = `[${slotLabel}] Nhiệt độ ${temp}°C (cảm nhận thực tế ~${apparentTemp}°C), độ ẩm không khí ${hum}%. `;
+        if (temp >= 29) {
+          outdoorVi += `Bức xạ nhiệt tương đối cao. Khi di chuyển ngoài trời nên mang áo khoác chống tia UV, kính râm và ${outdoorHydrationVi}`;
+        } else if (temp <= 22) {
+          outdoorVi += `Gió lạnh kết hợp độ ẩm cao. Cần khoác thêm áo gió mỏng và giữ ấm vùng cổ ngực khi lưu thông đường dài.`;
+        } else if (hum >= 80) {
+          outdoorVi += `Thời tiết mát nhưng độ ẩm không khí rất cao (${hum}%). Không khí nồng ẩm khiến mồ hôi khó thoát, nên chọn trang phục thoáng khí.`;
+        } else {
+          outdoorVi += `Điều kiện vi khí hậu rất dễ chịu. Rất thích hợp cho các hoạt động di chuyển, tập thể dục hoặc làm việc ngoài trời.`;
+        }
+      }
+
+      let indoorVi = "", indoorEn = "";
+      if (currentLang === 'en') {
+        if (hum >= 80) {
+          indoorEn = `High humidity level (${hum}%). Keep indoor areas ventilated or enable DRY mode on AC / use a dehumidifier to prevent moisture build-up and mold.`;
+        } else if (temp >= 28) {
+          indoorEn = `Indoor temp around ${temp}°C. Use ceiling/desk fans for air circulation or set AC to 26°C to maintain energy efficiency.`;
+        } else {
+          indoorEn = `Optimal room environment. Keep main windows open to capture fresh natural airflow without turning on artificial cooling.`;
+        }
+      } else {
+        if (hum >= 80) {
+          indoorVi = `Độ ẩm indoor chạm mốc cao (${hum}%). Nên duy trì thông gió phòng hoặc bật chế độ DRY/hút ẩm để tránh đọng sương trên sàn và ngăn ngừa nấm mốc phát triển.`;
+        } else if (temp >= 28) {
+          indoorVi = `Nhiệt độ phòng khoảng ${temp}°C. Sử dụng quạt đối lưu không khí hoặc bật điều hòa mức 26°C để duy trì sự thoải mái và tiết kiệm điện.`;
+        } else {
+          indoorVi = `Không gian trong nhà thoáng đãng. Mở rộng rèm và cửa sổ để đón luồng khí tươi tự nhiên mà không cần dùng điều hòa cưỡng bức.`;
+        }
+      }
+
+      return { tagVi, tagEn, outdoorVi, outdoorEn, indoorVi, indoorEn };
     }
 
-    startRealtimeClock();
-    applyPreset(0);
-  </script>
+    function updateOuterAIAdvisor(item) {
+      document.getElementById('ai-temp-val').textContent = `${item.temp} °C`;
+      document.getElementById('ai-humidity-val').textContent = `${item.humidity} %`;
 
-  <!-- Firebase Integration Script -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+      const advice = computeAIAdvice(item.temp, item.humidity, currentLang === 'en' ? "Current" : "Hiện tại");
+      document.getElementById('ai-status-tag').textContent = currentLang === 'en' ? advice.tagEn : advice.tagVi;
+      document.getElementById('ai-outdoor-text').textContent = currentLang === 'en' ? advice.outdoorEn : advice.outdoorVi;
+      document.getElementById('ai-indoor-text').textContent = currentLang === 'en' ? advice.indoorEn : advice.indoorVi;
+    }
 
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      databaseURL: "https://YOUR_DATABASE_NAME.firebaseio.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "SENDER_ID",
-      appId: "APP_ID"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
-
-    const dbRef = ref(db, '/smart_home');
-    onValue(dbRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data && data.temp) {
-        window.latestSensorData = data;
-        document.getElementById('json-preview').textContent = JSON.stringify(data, null, 2);
-      }
+    window.addEventListener('DOMContentLoaded', () => {
+      updateTexts();
+      startRealtimeClock();
+      applyPreset(0);
+      fetchQuyNhonWeather();
+      loadRealAiModels();
+      setInterval(fetchQuyNhonWeather, 600000);
     });
-
-    lucide.createIcons();
   </script>
 
-  <!-- Drawer Control Script -->
+  <!-- DRAWER CONTROL & AUTOMATED REAL AI FACE RECOGNITION -->
   <script>
+    let globalMediaStream = null;
+    let isCameraRunning = false;
+    let autoScanInterval = null;
+    let lastNotificationTime = 0;
+    let lastStrangerUploadTime = 0;
+
     function openPanel(type) {
+      currentActiveDrawerType = type;
       const drawer = document.getElementById('control-drawer');
       const backdrop = document.getElementById('drawer-backdrop');
       
@@ -477,74 +667,156 @@
       const body = document.getElementById('drawer-body');
       const data = window.latestSensorData;
 
-      if (type === 'door') {
+      if (type === 'env') {
+        title.textContent = currentLang === 'en' ? "Environment & Weather AI Advisor" : "Môi trường & Dự báo Thời tiết AI";
+        generateDynamicForecastList(null);
+        const forecastList = window.hourlyForecastData;
+
+        let forecastButtonsHtml = forecastList.map((item, idx) => `
+          <button onclick="selectForecastItemWithDelay(${idx})" id="fc-btn-${idx}" class="p-2.5 rounded-xl border flex flex-col items-center justify-center transition ${idx === 0 ? 'bg-sky-600 border-sky-400 text-white shadow-lg shadow-sky-500/20 scale-105' : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700'}">
+            <span class="text-[11px] font-bold ${item.isNow ? 'text-amber-300' : 'text-slate-200'}">${item.label}</span>
+            <span class="text-xs font-extrabold text-amber-400 mt-1">${item.temp}°C</span>
+            <span class="text-[10px] text-cyan-300 font-mono">${item.humidity}% RH</span>
+          </button>
+        `).join('');
+
+        body.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex justify-between items-center px-1">
+              <span class="text-xs font-semibold text-slate-300">${currentLang === 'en' ? 'Hourly Forecast (Quy Nhon):' : 'Các mốc giờ dự báo (Quy Nhơn):'}</span>
+              <span class="text-[10px] text-sky-400 font-mono">Realtime 6 Slots</span>
+            </div>
+            <div class="grid grid-cols-3 gap-2">${forecastButtonsHtml}</div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/90 border border-sky-500/30 space-y-3 relative">
+            <div id="ai-loading-overlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur-sm rounded-xl z-20 hidden flex flex-col items-center justify-center gap-2">
+              <div class="w-7 h-7 border-3 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
+              <span id="ai-loading-text" class="text-xs font-semibold text-sky-300">${currentLang === 'en' ? 'AI is analyzing temperature data...' : 'AI đang phân tích nhiệt độ...'}</span>
+            </div>
+
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+              <div class="flex items-center gap-1.5 text-sky-400">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                <span class="text-xs font-bold uppercase tracking-wider">${currentLang === 'en' ? 'AI Advisory Preview' : 'Xem trước gợi ý AI'}</span>
+              </div>
+              <span id="drawer-ai-tag" class="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 text-[10px] font-semibold">Pleasant</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-xs bg-slate-950/60 p-2 rounded-lg border border-slate-800">
+              <div>
+                <span class="text-slate-400 text-[10px]">${currentLang === 'en' ? 'Selected Temp:' : 'Nhiệt độ chọn:'}</span>
+                <p id="drawer-ai-temp" class="font-bold text-amber-400 text-xs">${forecastList[0].temp} °C</p>
+              </div>
+              <div>
+                <span class="text-slate-400 text-[10px]">${currentLang === 'en' ? 'Humidity:' : 'Độ ẩm:'}</span>
+                <p id="drawer-ai-hum" class="font-bold text-cyan-400 text-xs">${forecastList[0].humidity} %</p>
+              </div>
+            </div>
+
+            <div class="space-y-2 text-xs">
+              <div class="p-2 rounded-lg bg-slate-950/80 border border-slate-800">
+                <p class="font-semibold text-sky-300 mb-0.5 text-[11px]">${currentLang === 'en' ? 'Going Outdoors:' : 'Khi ra ngoài đường:'}</p>
+                <p id="drawer-ai-outdoor" class="text-slate-300 text-[11px] leading-relaxed">Analyzing selected slot...</p>
+              </div>
+
+              <div class="p-2 rounded-lg bg-slate-950/80 border border-slate-800">
+                <p class="font-semibold text-emerald-300 mb-0.5 text-[11px]">${currentLang === 'en' ? 'Staying Indoors:' : 'Khi ở trong nhà:'}</p>
+                <p id="drawer-ai-indoor" class="text-slate-300 text-[11px] leading-relaxed">Analyzing selected slot...</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/90 border border-emerald-500/30 space-y-3">
+            <div class="flex items-center gap-2 text-emerald-400">
+              <i data-lucide="bot" class="w-4 h-4"></i>
+              <span class="text-xs font-bold uppercase tracking-wider">${currentLang === 'en' ? 'Weather & Health AI Assistant' : 'Trợ lý AI Thời tiết & Chăm sóc sức khỏe'}</span>
+            </div>
+
+            <div class="flex gap-2">
+              <input type="text" id="weather-qa-input" placeholder="${currentLang === 'en' ? 'Ask about weather, health tips, drinks...' : 'Hỏi về thời tiết, mẹo giải cảm, nước uống...'}" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500">
+              <button onclick="askWeatherHealthAI()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition">${currentLang === 'en' ? 'Send' : 'Gửi'}</button>
+            </div>
+
+            <div id="qa-response-box" class="hidden p-3 rounded-lg bg-slate-950/90 border border-emerald-500/20 text-xs space-y-1 animate-fadeIn">
+              <p class="font-semibold text-emerald-300 text-[11px]">${currentLang === 'en' ? 'Response from AI Advisor:' : 'Trả lời từ AI Advisor:'}</p>
+              <p id="qa-response-text" class="text-slate-300 leading-relaxed text-[11px]"></p>
+            </div>
+          </div>
+        `;
+        selectForecastItem(0);
+      } 
+      else if (type === 'camera') {
+        title.textContent = currentLang === 'en' ? "AI Face Recognition Camera (SSD Mobilenet)" : "Camera AI Nhận Diện Khuôn Mặt (SSD Mobilenet High-Precision)";
+
+        body.innerHTML = `
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-300">${currentLang === 'en' ? 'Auto Scanning Stream:' : 'Luồng Camera tự động quét AI:'}</span>
+              <span id="cam-status-badge" class="px-2 py-0.5 rounded text-[10px] ${isCameraRunning ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400'}">
+                ${isCameraRunning ? (currentLang === 'en' ? 'REAL AI SCANNING ACTIVE' : 'REAL AI SCANNING ACTIVE') : 'OFFLINE'}
+              </span>
+            </div>
+
+            <div class="relative rounded-xl overflow-hidden border border-slate-700 bg-black aspect-video flex items-center justify-center">
+              <video id="webcam-feed" autoplay playsinline muted class="w-full h-full object-cover transition-all duration-500"></video>
+              <canvas id="ai-overlay-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
+              <canvas id="snapshot-canvas" class="hidden"></canvas>
+              <div id="cam-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 text-xs gap-2 ${isCameraRunning ? 'hidden' : ''}">
+                <i data-lucide="video-off" class="w-6 h-6"></i>
+                <span>${currentLang === 'en' ? 'Turn on Camera to start real-time AI scanning' : 'Bật Camera để khởi động mạng Nơ-ron AI quét thực tế'}</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="turnOnCamera()" class="py-2.5 px-3 text-xs font-bold rounded-xl border transition ${isCameraRunning ? 'bg-emerald-600 border-emerald-400 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
+                ${currentLang === 'en' ? '🟢 Turn On Cam' : '🟢 Bật Camera'}
+              </button>
+              <button onclick="turnOffCamera()" class="py-2.5 px-3 text-xs font-bold rounded-xl border transition ${!isCameraRunning ? 'bg-red-600 border-red-400 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
+                ${currentLang === 'en' ? '🔴 Turn Off Cam' : '🔴 Tắt Camera'}
+              </button>
+            </div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
+            <div class="text-xs font-semibold text-slate-300">${currentLang === 'en' ? 'Register New Member Face (128 AI Vector Extraction):' : 'Đăng ký khuôn mặt mới (Trích xuất 128 AI Vector & Upload Drive):'}</div>
+            
+            <div class="flex gap-2">
+              <input type="text" id="register-name-input" placeholder="${currentLang === 'en' ? 'Enter member name...' : 'Nhập tên thành viên...'}" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-sky-500">
+              <button id="btn-add-db" onclick="registerFaceWithRealAi()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition flex items-center gap-1">
+                <span>${currentLang === 'en' ? '🧠 AI Scan & Add DB' : '🧠 Quét AI & Thêm CSDL'}</span>
+              </button>
+            </div>
+
+            <div class="pt-2 border-t border-slate-800">
+              <div class="flex items-center justify-between text-xs mb-2">
+                <span class="text-slate-400">${currentLang === 'en' ? 'Registered Descriptors:' : 'Danh sách AI Face Descriptors:'}</span>
+                <span id="member-count-badge" class="text-sky-400 font-mono font-bold">${window.registeredFaceDB.length} ${currentLang === 'en' ? 'People' : 'Người'}</span>
+              </div>
+              <div id="member-list-box" class="space-y-1.5 max-h-40 overflow-y-auto text-[11px]">
+                ${renderMemberListHtml()}
+              </div>
+            </div>
+          </div>
+        `;
+
+        if (isCameraRunning && globalMediaStream) {
+          setTimeout(() => attachStreamToVideo(globalMediaStream), 100);
+        }
+      }
+      else if (type === 'door') {
         title.textContent = currentLang === 'en' ? "Access Control (Servo Motor)" : "Kiểm soát ra vào (Servo Motor)";
         const isOpen = data.door === "OPEN";
         body.innerHTML = `
           <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
-            <div class="text-sm font-semibold text-slate-300">${currentLang === 'en' ? 'Current Door Status:' : 'Trạng thái cửa hiện tại:'}</div>
+            <div class="text-sm font-semibold text-slate-300">${currentLang === 'en' ? 'Current Door Status (Firebase):' : 'Trạng thái cửa hiện tại (Firebase):'}</div>
             <div id="drawer-door-status" class="text-2xl font-bold ${isOpen ? 'text-emerald-400' : 'text-sky-400'}">
-              ${isOpen ? (currentLang === 'en' ? "Door Open (90°)" : "Cửa Mở (90°)") : (currentLang === 'en' ? "Door Closed (0°)" : "Cửa Đóng (0°)")}
-            </div>
-            <p class="text-xs text-slate-400">Synced via Serial Bridge</p>
-          </div>
-          <div class="space-y-2">
-            <label class="text-xs font-medium text-slate-300">${currentLang === 'en' ? 'Manual Commands:' : 'Thao tác điều khiển:'}</label>
-            <div class="grid grid-cols-2 gap-3">
-              <button onclick="setDoorState('OPEN')" class="py-3 px-4 text-xs font-semibold rounded-xl border transition ${isOpen ? 'bg-sky-600 border-sky-400 text-white shadow-lg shadow-sky-500/30' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
-                ${currentLang === 'en' ? 'Open (90°)' : 'Mở (90°)'}
-              </button>
-              <button onclick="setDoorState('CLOSED')" class="py-3 px-4 text-xs font-semibold rounded-xl border transition ${!isOpen ? 'bg-sky-600 border-sky-400 text-white shadow-lg shadow-sky-500/30' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
-                ${currentLang === 'en' ? 'Close (0°)' : 'Đóng (0°)'}
-              </button>
+              ${isOpen ? (currentLang === 'en' ? "Door OPEN (90°)" : "Cửa Mở (90°)") : (currentLang === 'en' ? "Door CLOSED (0°)" : "Cửa Đóng (0°)")}
             </div>
           </div>
-        `;
-      } 
-      else if (type === 'alarm') {
-        title.textContent = currentLang === 'en' ? "Intrusion Security (HC-SR04)" : "An ninh chống trộm (HC-SR04)";
-        const isArmed = data.alarmArmed === 1;
-        body.innerHTML = `
-          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
-            <div class="text-sm font-semibold text-slate-300">${currentLang === 'en' ? 'Security State:' : 'Trạng thái bảo vệ:'}</div>
-            <div id="drawer-alarm-status" class="text-2xl font-bold ${isArmed ? 'text-red-400' : 'text-slate-400'}">
-              ${isArmed ? (currentLang === 'en' ? "ARMED (Active)" : "ĐANG BẬT BẢO VỆ") : (currentLang === 'en' ? "DISARMED" : "TẮT BẢO VỆ")}
-            </div>
-            <p class="text-xs text-slate-400">Ultrasonic range detection threshold: < 30cm</p>
-          </div>
-          
-          <div class="space-y-3">
-            <label class="text-xs font-medium text-slate-300">${currentLang === 'en' ? 'Security Mode:' : 'Chế độ an ninh:'}</label>
-            <div class="grid grid-cols-2 gap-3">
-              <button onclick="setAlarmState(1)" class="py-3 px-4 text-xs font-semibold rounded-xl border transition ${isArmed ? 'bg-red-600 border-red-400 text-white shadow-lg shadow-red-500/30' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
-                ${currentLang === 'en' ? 'Arm System' : 'Bật bảo vệ'}
-              </button>
-              <button onclick="setAlarmState(0)" class="py-3 px-4 text-xs font-semibold rounded-xl border transition ${!isArmed ? 'bg-slate-700 border-slate-500 text-white' : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'}">
-                ${currentLang === 'en' ? 'Disarm' : 'Tắt bảo vệ'}
-              </button>
-            </div>
-
-            <div class="pt-3 border-t border-slate-800">
-              <button onclick="triggerMotionSimulation()" ${!isArmed ? 'disabled' : ''} class="w-full py-3 px-4 text-xs font-bold rounded-xl border transition flex items-center justify-center gap-2 ${isArmed ? 'bg-amber-600/20 border-amber-500/50 text-amber-300 hover:bg-amber-600/30 cursor-pointer' : 'bg-slate-900 border-slate-800 text-slate-600 cursor-not-allowed'}">
-                <i data-lucide="footprints" class="w-4 h-4"></i>
-                <span>${currentLang === 'en' ? 'Trigger Motion (Simulate Intruder)' : 'Mô phỏng phát hiện chuyển động'}</span>
-              </button>
-            </div>
-          </div>
-        `;
-      } 
-      else if (type === 'env') {
-        title.textContent = currentLang === 'en' ? "Environment & DHT Sensor" : "Môi trường & Cảm biến DHT";
-        body.innerHTML = `
-          <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-4">
-            <div class="flex justify-between items-center">
-              <span class="text-xs text-slate-400">${currentLang === 'en' ? 'Temperature:' : 'Nhiệt độ:'}</span>
-              <span class="text-lg font-bold text-amber-400">${data.temp} °C</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-xs text-slate-400">${currentLang === 'en' ? 'Humidity:' : 'Độ ẩm:'}</span>
-              <span class="text-lg font-bold text-cyan-400">${data.humidity} %</span>
-            </div>
+          <div class="grid grid-cols-2 gap-3">
+            <button onclick="setDoorState('OPEN', true)" class="py-3 px-4 text-xs font-semibold rounded-xl border transition ${isOpen ? 'bg-sky-600 border-sky-400 text-white' : 'bg-slate-800 border-slate-700 text-slate-300'}">${currentLang === 'en' ? 'Open (90°)' : 'Mở (90°)'}</button>
+            <button onclick="setDoorState('CLOSED', true)" class="py-3 px-4 text-xs font-semibold rounded-xl border transition ${!isOpen ? 'bg-sky-600 border-sky-400 text-white' : 'bg-slate-800 border-slate-700 text-slate-300'}">${currentLang === 'en' ? 'Close (0°)' : 'Đóng (0°)'}</button>
           </div>
         `;
       } 
@@ -553,7 +825,7 @@
         const mode = data.lightMode || 'AUTO';
         body.innerHTML = `
           <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
-            <div class="text-sm font-semibold text-slate-300">${currentLang === 'en' ? 'Active Mode:' : 'Chế độ hiện tại:'}</div>
+            <div class="text-sm font-semibold text-slate-300">${currentLang === 'en' ? 'Current Mode (Firebase):' : 'Chế độ hiện tại (Firebase):'}</div>
             <div class="text-xl font-bold text-yellow-300">${mode}</div>
           </div>
           <div class="grid grid-cols-3 gap-2">
@@ -566,34 +838,456 @@
       lucide.createIcons();
     }
 
-    function setDoorState(state) {
+    function selectForecastItemWithDelay(idx) {
+      const overlay = document.getElementById('ai-loading-overlay');
+      if (overlay) overlay.classList.remove('hidden');
+
+      setTimeout(() => {
+        selectForecastItem(idx);
+        if (overlay) overlay.classList.add('hidden');
+      }, 6000);
+    }
+
+    function selectForecastItem(idx) {
+      const forecastList = window.hourlyForecastData.length > 0 ? window.hourlyForecastData : [];
+      if (!forecastList[idx]) return;
+
+      for (let i = 0; i < forecastList.length; i++) {
+        const btn = document.getElementById(`fc-btn-${i}`);
+        if (btn) {
+          if (i === idx) {
+            btn.className = "p-2.5 rounded-xl border flex flex-col items-center justify-center transition bg-sky-600 border-sky-400 text-white shadow-lg shadow-sky-500/20 scale-105";
+          } else {
+            btn.className = "p-2.5 rounded-xl border flex flex-col items-center justify-center transition bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-700";
+          }
+        }
+      }
+
+      const selectedItem = forecastList[idx];
+      const advice = computeAIAdvice(selectedItem.temp, selectedItem.humidity, selectedItem.label);
+
+      document.getElementById('drawer-ai-tag').textContent = currentLang === 'en' ? advice.tagEn : advice.tagVi;
+      document.getElementById('drawer-ai-temp').textContent = `${selectedItem.temp} °C`;
+      document.getElementById('drawer-ai-hum').textContent = `${selectedItem.humidity} %`;
+      document.getElementById('drawer-ai-outdoor').textContent = currentLang === 'en' ? advice.outdoorEn : advice.outdoorVi;
+      document.getElementById('drawer-ai-indoor').textContent = currentLang === 'en' ? advice.indoorEn : advice.indoorVi;
+    }
+
+    function askWeatherHealthAI() {
+      const inputEl = document.getElementById('weather-qa-input');
+      const boxEl = document.getElementById('qa-response-box');
+      const textEl = document.getElementById('qa-response-text');
+
+      if (!inputEl || !inputEl.value.trim()) return;
+      const query = inputEl.value.trim().toLowerCase();
+
+      boxEl.classList.remove('hidden');
+      textEl.textContent = currentLang === 'en' ? "AI is thinking..." : "AI đang suy nghĩ câu trả lời...";
+
+      setTimeout(() => {
+        const validKeywords = ['thời tiết', 'nắng', 'mưa', 'nóng', 'lạnh', 'cảm', 'sức khỏe', 'uống', 'trà', 'gừng', 'tỏi', 'nước', 'áo', 'ốm', 'ho', 'uv', 'weather', 'cold', 'hot', 'rain', 'health', 'drink', 'water', 'tea'];
+        const isValid = validKeywords.some(kw => query.includes(kw));
+
+        if (!isValid) {
+          textEl.textContent = currentLang === 'en' 
+            ? "⚠️ I am the Weather & Health AI Advisor. I only assist with microclimate, weather, and personal health inquiries!" 
+            : "⚠️ Tôi là Trợ lý AI Thời tiết & Chăm sóc sức khỏe. Tôi chỉ hỗ trợ trả lời các vấn đề vi khí hậu, thời tiết và phương pháp giữ gìn sức khỏe!";
+          return;
+        }
+
+        if (query.includes('cảm') || query.includes('ho') || query.includes('lạnh') || query.includes('cold')) {
+          textEl.textContent = currentLang === 'en'
+            ? "🍵 Health Tip: If catching a cold from rain, boil fresh ginger with honey and drink immediately to warm up respiratory airways!"
+            : "🍵 Lời khuyên sức khỏe: Nếu chớm bị cảm lạnh đi mưa, hãy giã nát 1 nhánh gừng tươi đun nước ấm cùng mật ong uống ngay. Gừng giúp phát tán phong hàn và làm ấm phế quản rất nhanh!";
+        } else if (query.includes('nóng') || query.includes('nước') || query.includes('uống') || query.includes('hot') || query.includes('drink')) {
+          textEl.textContent = currentLang === 'en'
+            ? "🍋 Health Tip: Extreme heat causes electrolyte loss. Drink fresh coconut water or salted lemon juice. Avoid ice-cold water to protect throat!"
+            : "🍋 Lời khuyên sức khỏe: Nắng nóng làm mất điện giải, hãy dùng nước dừa tươi hoặc chanh muối bù khoáng. Hạn chế uống nước đá lạnh buốt gây sốc nhiệt họng!";
+        } else {
+          textEl.textContent = currentLang === 'en'
+            ? "☀️ Stay healthy by balancing indoor and outdoor temperatures. Wear breathable clothes and drink 2L of water daily!"
+            : "☀️ Giữ gìn sức khỏe mùa này cần chú ý cân bằng nhiệt độ phòng và ngoài trời. Hãy chọn trang phục thấm hút mồ hôi và duy trì thói quen uống đủ 2L nước mỗi ngày!";
+        }
+      }, 1500);
+    }
+
+    async function turnOnCamera() {
+      if (isCameraRunning && globalMediaStream) return;
+      try {
+        globalMediaStream = await navigator.mediaDevices.getUserMedia({ video: true });
+        isCameraRunning = true;
+        attachStreamToVideo(globalMediaStream);
+        appendLog(currentLang === 'en' ? "📷 AI Camera System: Streaming active" : "📷 AI Camera System: Bật luồng theo dõi tự động");
+        
+        startAutoScanFace();
+        renderDrawerContent('camera');
+      } catch (err) {
+        alert(currentLang === 'en' ? "Unable to access webcam!" : "Không thể bật Webcam! Vui lòng cho phép trình duyệt truy cập camera.");
+      }
+    }
+
+    function turnOffCamera() {
+      if (globalMediaStream) {
+        globalMediaStream.getTracks().forEach(track => {
+          track.stop();
+          globalMediaStream.removeTrack(track);
+        });
+        globalMediaStream = null;
+      }
+      
+      const videoEl = document.getElementById('webcam-feed');
+      if (videoEl) {
+        videoEl.srcObject = null;
+      }
+
+      isCameraRunning = false;
+      if (autoScanInterval) clearInterval(autoScanInterval);
+      clearAiOverlay();
+      appendLog(currentLang === 'en' ? "📷 AI Camera System: Hardware stream fully terminated" : "📷 AI Camera System: Đã ngắt phần cứng & Tắt đèn nguồn hoàn toàn");
+      renderDrawerContent('camera');
+    }
+
+    function attachStreamToVideo(stream) {
+      const videoEl = document.getElementById('webcam-feed');
+      const placeholder = document.getElementById('cam-placeholder');
+      if (videoEl) {
+        videoEl.srcObject = stream;
+        if (placeholder) placeholder.classList.add('hidden');
+      }
+    }
+
+    function captureSnapshotImage() {
+      const videoEl = document.getElementById('webcam-feed');
+      const canvas = document.getElementById('snapshot-canvas');
+      if (videoEl && videoEl.srcObject && canvas) {
+        canvas.width = videoEl.videoWidth || 320;
+        canvas.height = videoEl.videoHeight || 240;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(videoEl, 0, 0, canvas.width, canvas.height);
+        return canvas.toDataURL('image/jpeg');
+      }
+      return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop';
+    }
+
+    function clearAiOverlay() {
+      const canvas = document.getElementById('ai-overlay-canvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+    }
+
+    function applySmartAiLightingCorrection(ctx, width, height, videoEl) {
+      if (!ctx || width === 0 || height === 0 || !videoEl) return;
+      
+      try {
+        const imgData = ctx.getImageData(0, 0, width, height);
+        const data = imgData.data;
+        let totalLuminance = 0;
+        const step = 20;
+        let count = 0;
+
+        for (let i = 0; i < data.length; i += 4 * step) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          totalLuminance += (0.299 * r + 0.587 * g + 0.114 * b);
+          count++;
+        }
+
+        const avgLuminance = totalLuminance / (count || 1);
+
+        if (avgLuminance > 180) {
+          videoEl.style.filter = "brightness(0.85) contrast(1.25) saturate(0.95)";
+        } else if (avgLuminance < 75) {
+          videoEl.style.filter = "brightness(1.35) contrast(1.15) saturate(1.1)";
+        } else {
+          videoEl.style.filter = "none";
+        }
+      } catch (e) {}
+    }
+
+    function startAutoScanFace() {
+      if (autoScanInterval) clearInterval(autoScanInterval);
+
+      autoScanInterval = setInterval(async () => {
+        if (!isCameraRunning || !isAiModelsLoaded) return;
+
+        const videoEl = document.getElementById('webcam-feed');
+        const overlayCanvas = document.getElementById('ai-overlay-canvas');
+        if (!videoEl || videoEl.paused || videoEl.ended || !overlayCanvas) return;
+
+        const displaySize = { width: videoEl.clientWidth || 320, height: videoEl.clientHeight || 240 };
+        faceapi.matchDimensions(overlayCanvas, displaySize);
+        const ctx = overlayCanvas.getContext('2d');
+        ctx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+
+        applySmartAiLightingCorrection(ctx, displaySize.width, displaySize.height, videoEl);
+
+        const detections = await faceapi.detectAllFaces(videoEl, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
+                                         .withFaceLandmarks()
+                                         .withFaceDescriptors();
+
+        if (!detections || detections.length === 0) {
+          return;
+        }
+
+        const resizedDetections = faceapi.resizeResults(detections, displaySize);
+        let hasStranger = false;
+        let recognizedNames = [];
+
+        resizedDetections.forEach((det) => {
+          const { box } = det.detection;
+          const currentDescriptor = det.descriptor;
+          let label = currentLang === 'en' ? "STRANGER" : "NGƯỜI LẠ";
+          let color = "#ef4444";
+          let minDistance = 1.0;
+          let bestMatch = null;
+
+          if (window.registeredFaceDB.length > 0) {
+            for (const member of window.registeredFaceDB) {
+              if (member.descriptor) {
+                const distance = faceapi.euclideanDistance(currentDescriptor, new Float32Array(member.descriptor));
+                if (distance < minDistance) {
+                  minDistance = distance;
+                  bestMatch = member;
+                }
+              }
+            }
+
+            if (minDistance < 0.45 && bestMatch) {
+              label = `${bestMatch.name} (${(100 - minDistance * 100).toFixed(0)}%)`;
+              color = "#10b981";
+              recognizedNames.push(bestMatch.name);
+            } else {
+              label = currentLang === 'en' ? `STRANGER (${(100 - minDistance * 100).toFixed(0)}%)` : `NGƯỜI LẠ (${(100 - minDistance * 100).toFixed(0)}% khớp)`;
+              color = "#ef4444";
+              hasStranger = true;
+            }
+          } else {
+            label = currentLang === 'en' ? "STRANGER (EMPTY DB)" : "NGƯỜI LẠ (CSDL RỖNG)";
+            color = "#ef4444";
+            hasStranger = true;
+          }
+
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = color;
+          ctx.strokeRect(box.x, box.y, box.width, box.height);
+
+          ctx.fillStyle = color;
+          ctx.font = "bold 12px Plus Jakarta Sans, sans-serif";
+          const textWidth = ctx.measureText(label).width;
+          ctx.fillRect(box.x, box.y > 22 ? box.y - 22 : 0, textWidth + 12, 22);
+          
+          ctx.fillStyle = "#ffffff";
+          ctx.fillText(label, box.x + 6, box.y > 22 ? box.y - 6 : 15);
+        });
+
+        const snapshotUrl = captureSnapshotImage();
+
+        if (recognizedNames.length > 0) {
+          const msg = currentLang === 'en'
+            ? `✅ <b>AI Detected ${detections.length} Person:</b> Matched ${recognizedNames.join(', ')} -> Opening Servo Door!`
+            : `✅ <b>AI Phát Hiện ${detections.length} Người:</b> Nhận diện ${recognizedNames.join(', ')} -> Mở cửa Servo!`;
+          appendLog(msg);
+          setDoorState('OPEN', false);
+        }
+
+        if (hasStranger) {
+          if (db) db.ref('/controls/alarm').set('INTRUDER');
+          const strangerTitle = currentLang === 'en' ? `Stranger Alert (${new Date().toLocaleTimeString('en-US')})` : `Cảnh báo người lạ (${new Date().toLocaleTimeString('vi-VN')})`;
+          const logMsg = currentLang === 'en'
+            ? `🚨 <b>AI ALARM: STRANGER DETECTED!</b> -> Uploading to Drive (10s Cooldown)`
+            : `🚨 <b>BÁO ĐỘNG AI: Phát hiện NGƯỜI LẠ!</b> -> Gửi ảnh Drive (Chu kỳ 10s)`;
+          appendLog(logMsg, snapshotUrl);
+          triggerMobilePushNotification(currentLang === 'en' ? `SECURITY ALARM: Stranger detected at door!` : `CẢNH BÁO AN NINH: Phát hiện người lạ trước cửa!`);
+          saveStrangerLogToDrive(strangerTitle, snapshotUrl);
+        }
+
+      }, 1500);
+    }
+
+    async function saveStrangerLogToDrive(strangerTitle, base64Img) {
+      const now = Date.now();
+      if (now - lastStrangerUploadTime < 10000) {
+        return;
+      }
+      lastStrangerUploadTime = now;
+
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ 
+            action: "ADD", 
+            memberName: strangerTitle, 
+            image: base64Img,
+            isStranger: true
+          })
+        });
+        const syncMsg = currentLang === 'en' ? `☁️ <b>Google Drive Sync:</b> Uploaded stranger capture to subfolder successfully.` : `☁️ <b>Google Drive Sync:</b> Đã lưu 1 ảnh người lạ vào thư mục con thành công.`;
+        appendLog(syncMsg);
+      } catch (err) {
+        console.error("Stranger upload error:", err);
+      }
+    }
+
+    async function registerFaceWithRealAi() {
+      const inputEl = document.getElementById('register-name-input');
+      const btnAdd = document.getElementById('btn-add-db');
+
+      if (!inputEl || !inputEl.value.trim()) {
+        alert(currentLang === 'en' ? "Please enter a member name!" : "Vui lòng nhập tên thành viên!");
+        return;
+      }
+      if (!isCameraRunning) {
+        alert(currentLang === 'en' ? "Please turn ON the camera first!" : "Vui lòng BẬT Camera trước!");
+        return;
+      }
+      if (!isAiModelsLoaded) {
+        alert(currentLang === 'en' ? "AI Model loading, please wait..." : "Hệ thống AI đang tải Model, vui lòng đợi vài giây...");
+        return;
+      }
+
+      const videoEl = document.getElementById('webcam-feed');
+      if (btnAdd) {
+        btnAdd.disabled = true;
+        btnAdd.innerHTML = `<span>${currentLang === 'en' ? '🧠 AI Extracting Face...' : '🧠 AI đang phân tích khuôn mặt...'}</span>`;
+      }
+
+      const detection = await faceapi.detectSingleFace(videoEl, new faceapi.SsdMobilenetv1Options({ minConfidence: 0.5 }))
+                                      .withFaceLandmarks()
+                                      .withFaceDescriptor();
+
+      if (!detection) {
+        alert(currentLang === 'en' ? "❌ Face not detected! Look directly into the camera." : "❌ AI không tìm thấy khuôn mặt trong khung hình! Vui lòng nhìn thẳng vào Camera và thử lại.");
+        if (btnAdd) {
+          btnAdd.disabled = false;
+          btnAdd.innerHTML = `<span>${currentLang === 'en' ? '🧠 AI Scan & Add DB' : '🧠 Quét AI & Thêm CSDL'}</span>`;
+        }
+        return;
+      }
+
+      const descriptorArray = Array.from(detection.descriptor);
+      const rawName = inputEl.value.trim();
+      const newId = Date.now();
+      const memberCode = currentLang === 'en' ? `Member (${rawName})` : `Thành viên (${rawName})`;
+      const base64Image = captureSnapshotImage();
+
+      const updatedList = [...window.registeredFaceDB, { id: newId, name: memberCode, descriptor: descriptorArray }];
+      saveRegisteredMembers(updatedList);
+      renderDrawerContent('camera');
+
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ 
+            action: "ADD", 
+            memberName: memberCode, 
+            image: base64Image,
+            isStranger: false
+          })
+        });
+        const regMsg = currentLang === 'en' ? `🟢 <b>Learned AI Face Vectors & Uploaded Drive:</b> ${memberCode}` : `🟢 <b>Đã học vector AI khuôn mặt & Upload Drive gốc:</b> ${memberCode}`;
+        appendLog(regMsg, base64Image);
+        alert(currentLang === 'en' ? `✅ AI successfully extracted 128 vectors for "${memberCode}"!` : `✅ AI đã học xong 128 điểm đặc trưng khuôn mặt của "${memberCode}" và lưu lên Drive thành công!`);
+      } catch (err) {
+        console.error("Drive upload error:", err);
+      } finally {
+        if (btnAdd) {
+          btnAdd.disabled = false;
+          btnAdd.innerHTML = `<span>${currentLang === 'en' ? '🧠 AI Scan & Add DB' : '🧠 Quét AI & Thêm CSDL'}</span>`;
+        }
+        inputEl.value = '';
+        renderDrawerContent('camera');
+      }
+    }
+
+    async function deleteMember(id) {
+      const member = window.registeredFaceDB.find(m => m.id === id);
+      if (!member) return;
+
+      const confirmMsg = currentLang === 'en' ? `Are you sure you want to delete "${member.name}" from AI DB & Google Drive?` : `Bạn có chắc chắn muốn xóa "${member.name}" khỏi CSDL AI và Google Drive?`;
+      if (!confirm(confirmMsg)) return;
+
+      const memberName = member.name;
+      const updatedList = window.registeredFaceDB.filter(m => m.id !== id);
+      saveRegisteredMembers(updatedList);
+      renderDrawerContent('camera');
+
+      try {
+        await fetch(APPS_SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ action: "DELETE", memberName: memberName })
+        });
+        const delMsg = currentLang === 'en' ? `🗑️ <b>Deleted from AI DB & Drive:</b> ${memberName}` : `🗑️ <b>Đã xóa khỏi CSDL AI & Drive:</b> ${memberName}`;
+        appendLog(delMsg);
+      } catch (err) {
+        console.error("Drive delete error:", err);
+      }
+    }
+
+    function renderMemberListHtml() {
+      if (window.registeredFaceDB.length === 0) {
+        return `<p class="text-slate-500 italic">${currentLang === 'en' ? 'No AI face descriptors registered.' : 'Chưa có dữ liệu Vector AI khuôn mặt.'}</p>`;
+      }
+      return window.registeredFaceDB.map(m => `
+        <div class="flex items-center justify-between p-2 rounded bg-slate-950 border border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span class="text-slate-200 font-medium">${m.name}</span>
+            <span class="text-[9px] text-sky-400 font-mono bg-sky-500/10 px-1.5 py-0.5 rounded">128 AI Vector</span>
+          </div>
+          <button onclick="deleteMember(${m.id})" class="text-red-400 hover:text-red-300 font-bold px-1 text-[10px]">${currentLang === 'en' ? 'Delete' : 'Xóa CSDL'}</button>
+        </div>
+      `).join('');
+    }
+
+    function triggerMobilePushNotification(msg) {
+      const now = Date.now();
+      if (now - lastNotificationTime >= 10000) {
+        lastNotificationTime = now;
+        alert(`📱 [SECURITY ALARM]\n\n${msg}\nTime: ${new Date().toLocaleTimeString()}`);
+      }
+    }
+
+    // ĐỒNG BỘ NÚT ĐIỀU KHIỂN CỬA VÀO FIREBASE
+    function setDoorState(state, forceRender = false) {
       window.latestSensorData.door = state;
-      document.getElementById('json-preview').textContent = JSON.stringify(window.latestSensorData, null, 2);
-      appendLog(state === 'OPEN' ? 'Servo Door command executed: OPEN (90°)' : 'Servo Door command executed: CLOSED (0°)');
-      renderDrawerContent('door');
+      const jsonPreview = document.getElementById('json-preview');
+      if (jsonPreview) {
+        jsonPreview.textContent = JSON.stringify(window.latestSensorData, null, 2);
+      }
+      
+      if (db) {
+        db.ref('/controls/door').set(state); // Bắn lệnh trực tiếp lên Firebase Cloud
+      }
+      
+      if (forceRender) {
+        renderDrawerContent('door');
+      }
     }
 
-    function setAlarmState(state) {
-      window.latestSensorData.alarmArmed = state;
-      document.getElementById('json-preview').textContent = JSON.stringify(window.latestSensorData, null, 2);
-      appendLog(state === 1 ? 'Ultrasonic Security System: ARMED' : 'Ultrasonic Security System: DISARMED');
-      renderDrawerContent('alarm');
-    }
-
-    function triggerMotionSimulation() {
-      if (window.latestSensorData.alarmArmed !== 1) return;
-      const distance = Math.floor(Math.random() * 15) + 10;
-      appendLog(`⚠️ MOTION ALARM! Intruder detected by HC-SR04 at ${distance}cm range!`);
-    }
-
+    // ĐỒNG BỘ NÚT ĐIỀU KHIỂN ĐÈN VÀO FIREBASE
     function setLightMode(mode) {
       window.latestSensorData.lightMode = mode;
       document.getElementById('json-preview').textContent = JSON.stringify(window.latestSensorData, null, 2);
-      appendLog(`Lighting mode updated: ${mode}`);
+      
+      if (db) {
+        db.ref('/controls/lightMode').set(mode); // Bắn lệnh trực tiếp lên Firebase Cloud
+      }
+
+      appendLog(`Lighting mode updated: ${mode} [Firebase Realtime]`);
       renderDrawerContent('light');
     }
 
     function closePanel() {
+      currentActiveDrawerType = null;
       const drawer = document.getElementById('control-drawer');
       const backdrop = document.getElementById('drawer-backdrop');
       backdrop.classList.add('opacity-0');
