@@ -6,10 +6,8 @@
   <title>Smart Home & Security Hub - Real AI Recognition</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- TÍCH HỢP AI FACE-API.JS QUA CDN -->
   <script defer src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
   
-  <!-- FIREBASE REALTIME DATABASE SDK V8 -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
@@ -83,9 +81,9 @@
         </div>
       </div>
 
-      <div class="relative flex-1 rounded-xl bg-[#0b0e17] border border-slate-800 flex items-center justify-center p-2 my-1 overflow-hidden">
-        <div id="house-bg" class="absolute inset-0 bg-cover bg-center rounded-xl pointer-events-none lighting-morning" style="background-image: url('https://images.unsplash.com/photo-1613977257363-707ba9348227?q=80&w=1400&auto=format&fit=crop');"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-[#070913]/80 via-transparent to-[#070913]/20 rounded-xl"></div>
+      <div class="relative flex-1 rounded-xl bg-[#0b0e17] border border-slate-800 flex items-center justify-center p-2 my-1 overflow-hidden min-h-[360px]">
+        <div id="house-bg" class="absolute inset-0 bg-cover bg-center rounded-xl pointer-events-none lighting-morning opacity-100 z-0" style="background-image: url('https://images.unsplash.com/photo-1613977257363-707ba9348227?q=80&w=1400&auto=format&fit=crop'); display: block;"></div>
+        <div class="absolute inset-0 bg-gradient-to-t from-[#070913]/80 via-transparent to-[#070913]/20 rounded-xl pointer-events-none z-10"></div>
 
         <button onclick="openPanel('door')" class="absolute bottom-10 left-[28%] transform -translate-x-1/2 flex items-center gap-2 px-3.5 py-2 rounded-full bg-sky-950/90 border-2 border-sky-400 text-sky-200 text-xs font-semibold btn-hotspot hover:bg-sky-900 transition shadow-2xl z-20 focus:outline-none">
           <i data-lucide="door-closed" class="w-4 h-4 text-sky-300"></i> <span id="btn-door-label">Access Control (Servo)</span>
@@ -113,7 +111,7 @@
       </div>
     </div>
 
-    <!-- CỘT PHẢI: SYSTEM STATUS & BỘ PHÂN TÍCH AI -->
+    <!-- CỘT PHẢI: SYSTEM STATUS & BỘ TƯ VẤN THỜI TIẾT (LOGIC SIÊU TỐC) -->
     <div class="flex flex-col gap-4">
       <div class="glass-card rounded-2xl p-5 flex flex-col justify-between flex-1">
         <div class="flex items-center justify-between text-slate-400 mb-2">
@@ -136,12 +134,12 @@
         </div>
       </div>
 
-      <!-- CARD AI CỐ ĐỊNH MỐC GIỜ HIỆN TẠI -->
+      <!-- CARD TƯ VẤN THỜI TIẾT THÔNG MINH -->
       <div class="glass-card rounded-2xl p-5 border-l-4 border-l-sky-400 space-y-3">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-2 text-sky-400">
             <i data-lucide="brain-circuit" class="w-4 h-4"></i>
-            <h3 id="ai-card-title" class="text-xs font-bold uppercase tracking-wider">AI Climate Advisor (Current)</h3>
+            <h3 id="ai-card-title" class="text-xs font-bold uppercase tracking-wider">Climate Advisor (Current)</h3>
           </div>
           <span id="ai-status-tag" class="px-2.5 py-0.5 rounded-full bg-sky-500/20 text-sky-300 text-[10px] font-semibold">Live Quy Nhon</span>
         </div>
@@ -163,7 +161,7 @@
               <i data-lucide="footprints" class="w-3.5 h-3.5"></i>
               <span id="ai-outdoor-title">Going Outdoors Advice:</span>
             </p>
-            <p id="ai-outdoor-text" class="text-slate-300 leading-relaxed text-[11px]">Fetching live weather data...</p>
+            <p id="ai-outdoor-text" class="text-slate-300 leading-relaxed text-[11px]">Updating weather data...</p>
           </div>
 
           <div class="bg-slate-900/80 p-2.5 rounded-xl border border-slate-800">
@@ -171,7 +169,7 @@
               <i data-lucide="home" class="w-3.5 h-3.5"></i>
               <span id="ai-indoor-title">Staying Indoors Advice:</span>
             </p>
-            <p id="ai-indoor-text" class="text-slate-300 leading-relaxed text-[11px]">Fetching live weather data...</p>
+            <p id="ai-indoor-text" class="text-slate-300 leading-relaxed text-[11px]">Updating weather data...</p>
           </div>
         </div>
       </div>
@@ -251,13 +249,13 @@
   <!-- SCRIPT CORE LOGIC -->
   <script>
     const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      databaseURL: "https://smarthome-iot-fcd36-default-rtdb.asia-southeast1.firebasedatabase.app/",
-      projectId: "YOUR_PROJECT",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "SENDER_ID",
-      appId: "APP_ID"
+      apiKey: "AIzaSyC63LWyUwuSJyOQq_Q5eCnhU6rLsIj7kOA",
+      authDomain: "smarthome-iot-fcd36.firebaseapp.com",
+      databaseURL: "https://smarthome-iot-fcd36-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "smarthome-iot-fcd36",
+      storageBucket: "smarthome-iot-fcd36.firebasestorage.app",
+      messagingSenderId: "794743162225",
+      appId: "1:794743162225:web:7ca7b909d2b51da3e962d0",
     };
 
     let db = null;
@@ -290,10 +288,9 @@
         });
       }
     } catch(e) {
-      console.warn("Firebase Init Error (Using Offline/Demo Mode):", e);
+      console.warn("Firebase Init Error:", e);
     }
 
-    // THỜI GIAN CHECK HEARTBEAT ĐÃ ĐƯỢC TĂNG LÊN 60 GIÂY (60000ms)
     setInterval(() => {
       const hwStatusText = document.getElementById('hw-status-text');
       const hwStatusDot = document.getElementById('hw-status-dot');
@@ -368,7 +365,7 @@
         labelMcu: "Microcontroller:",
         labelSerial: "AI Framework:",
         labelCloud: "Cloud Sync:",
-        aiCardTitle: "AI Climate Advisor (Current)",
+        aiCardTitle: "Climate Advisor (Current)",
         aiStatusTag: "Live Quy Nhon",
         logsTitle: "Recent System Logs & AI Security Captures",
         initLogText: "Real AI Neural Model & 3D System initialized",
@@ -397,7 +394,7 @@
         labelMcu: "Vi điều khiển:",
         labelSerial: "Khung AI:",
         labelCloud: "Đồng bộ đám mây:",
-        aiCardTitle: "Cố Vấn Thời Tiết AI (Hiện Tại)",
+        aiCardTitle: "Cố Vấn Thời Tiết (Hiện Tại)",
         aiStatusTag: "Trực Tiếp Quy Nhơn",
         logsTitle: "Nhật ký hệ thống & Hình ảnh quét được",
         initLogText: "Mô hình Nơ-ron AI & Hệ thống 3D đã khởi tạo thành công",
@@ -506,6 +503,10 @@
       document.getElementById('ai-label-hum').textContent = t.aiLabelHum;
       document.getElementById('ai-outdoor-title').textContent = t.aiOutdoorTitle;
       document.getElementById('ai-indoor-title').textContent = t.aiIndoorTitle;
+
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
     }
 
     function cycleTimePreset() {
@@ -528,13 +529,12 @@
       for (let i = 0; i < 6; i++) {
         const targetHour = (currentHour + i) % 24;
         const timeLabel = `${String(targetHour).padStart(2, '0')}:00`;
-        const displayLabel = i === 0 ? "Now" : timeLabel;
+        const displayLabel = i === 0 ? (currentLang === 'vi' ? "Hiện tại" : "Now") : timeLabel;
 
         let temp = 28;
         let hum = 75;
 
         if (i === 0) {
-          // Ô "Now" luôn đồng bộ 100% dữ liệu thực từ mạch ESP8266/Firebase
           temp = Math.round(window.latestSensorData.temp);
           hum = Math.round(window.latestSensorData.humidity);
         } else if (dataApi && dataApi.hourly && dataApi.hourly.temperature_2m) {
@@ -548,6 +548,7 @@
         window.hourlyForecastData.push({
           isNow: i === 0,
           label: displayLabel,
+          hour: targetHour,
           temp: temp,
           humidity: hum
         });
@@ -567,79 +568,48 @@
       }
     }
 
-    function computeAIAdvice(temp, hum, slotLabel = "Now") {
-      let apparentTemp = temp;
-      if (temp >= 27 && hum > 70) {
-        apparentTemp = temp + Math.round((hum - 70) * 0.1);
-      }
-
-      let tagVi = "", tagEn = "";
-      if (temp >= 30) {
-        tagVi = "Oi Nóng Bức Xạ"; tagEn = "Hot & High Thermal Load";
-      } else if (temp <= 22) {
-        tagVi = "Se Lạnh Ẩm"; tagEn = "Chilly & Damp Air";
-      } else if (hum >= 80) {
-        tagVi = "Mát Mẻ Nhưng Ẩm Cao"; tagEn = "Mild & High Humidity";
-      } else {
-        tagVi = "Vi Khí Hậu Lý Tưởng"; tagEn = "Optimal Microclimate";
-      }
-
-      let outdoorVi = "", outdoorEn = "";
-      let outdoorHydrationVi = hum < 75 ? "uống đủ nước khoáng." : "bổ sung nước có khoáng chất/điện giải nhẹ.";
-      let outdoorHydrationEn = hum < 75 ? "stay hydrated with regular water." : "rehydrate with electrolyte fluids.";
+    // ------------------------------------------------------------------
+    // HÀM TƯ VẤN THỜI TIẾT DỰA TRÊN LOGIC IF-ELSE (SIÊU NHANH, ỔN ĐỊNH 100%)
+    // ------------------------------------------------------------------
+    async function computeAIAdviceReal(temp, hum, slotLabel = "Hiện tại", hour = new Date().getHours()) {
+      const isNight = hour >= 18 || hour < 6;
       
-      if (currentLang === 'en') {
-        outdoorEn = `[${slotLabel}] Temp at ${temp}°C (feels like ~${apparentTemp}°C) with ${hum}% relative humidity. `;
-        if (temp >= 29) {
-          outdoorEn += `UV index is high. Wear sun-protective clothing, UV-blocking sunglasses, and ${outdoorHydrationEn}`;
-        } else if (temp <= 22) {
-          outdoorEn += `Cold breeze combined with high moisture. Put on a lightweight windbreaker and keep your chest warm.`;
-        } else if (hum >= 80) {
-          outdoorEn += `Weather is cool but air saturation is high (${hum}%). Expect damp roads and sweat evaporation resistance during physical activities.`;
-        } else {
-          outdoorEn += `Great condition for commuting, jogging, or outdoor workouts. Perfect thermal balance for body movement.`;
-        }
-      } else {
-        outdoorVi = `[${slotLabel}] Nhiệt độ ${temp}°C (cảm nhận thực tế ~${apparentTemp}°C), độ ẩm không khí ${hum}%. `;
-        if (temp >= 29) {
-          outdoorVi += `Bức xạ nhiệt tương đối cao. Khi di chuyển ngoài trời nên mang áo khoác chống tia UV, kính râm và ${outdoorHydrationVi}`;
-        } else if (temp <= 22) {
-          outdoorVi += `Gió lạnh kết hợp độ ẩm cao. Cần khoác thêm áo gió mỏng và giữ ấm vùng cổ ngực khi lưu thông đường dài.`;
-        } else if (hum >= 80) {
-          outdoorVi += `Thời tiết mát nhưng độ ẩm không khí rất cao (${hum}%). Không khí nồng ẩm khiến mồ hôi khó thoát, nên chọn trang phục thoáng khí.`;
-        } else {
-          outdoorVi += `Điều kiện vi khí hậu rất dễ chịu. Rất thích hợp cho các hoạt động di chuyển, tập thể dục hoặc làm việc ngoài trời.`;
-        }
+      let tag = currentLang === 'en' ? "Mild Weather" : "Thời Tiết Mát Mẻ";
+      let outdoor = currentLang === 'en' ? "Weather conditions are favorable for outdoor movement." : "Thời tiết khá thuận lợi, thích hợp cho việc di chuyển ra ngoài.";
+      let indoor = currentLang === 'en' ? "Keep the house well-ventilated." : "Giữ không gian nhà thông thoáng, đóng bớt cửa sổ về đêm để tránh gió lùa.";
+
+      if (temp >= 32) {
+        tag = currentLang === 'en' ? "High Temperature" : "Nắng Nóng Cao Điểm";
+        outdoor = currentLang === 'en' ? "High outdoor temperature (>= 32°C). Use umbrellas, sunscreen, and avoid peak sun hours." : "Nhiệt độ ngoài trời cao (≥ 32°C). Nên mang theo ô dù, thoa kem chống nắng và hạn chế ra ngoài vào giờ cao điểm.";
+        indoor = currentLang === 'en' ? "Turn on air conditioning or fans, draw curtains to block heat." : "Bật điều hòa hoặc quạt mát, kéo rèm cửa để giảm nhiệt độ hấp thụ vào trong nhà.";
+      } else if (temp <= 22) {
+        tag = currentLang === 'en' ? "Cool Weather" : "Thời Tiết Se Lạnh";
+        outdoor = currentLang === 'en' ? "Low temperature (<= 22°C), chilly weather. Wear a light jacket." : "Nhiệt độ thấp (≤ 22°C), trời se lạnh. Nên mặc áo khoác mỏng và giữ ấm cơ thể khi ra đường.";
+        indoor = currentLang === 'en' ? "Close windows to block cold wind, keep warm indoors." : "Đóng kín cửa sổ tránh gió lạnh lùa vào phòng, giữ không gian ấm áp khi nghỉ ngơi.";
       }
 
-      let indoorVi = "", indoorEn = "";
-      if (currentLang === 'en') {
-        if (hum >= 80) {
-          indoorEn = `High humidity level (${hum}%). Keep indoor areas ventilated or enable DRY mode on AC / use a dehumidifier to prevent moisture build-up and mold.`;
-        } else if (temp >= 28) {
-          indoorEn = `Indoor temp around ${temp}°C. Use ceiling/desk fans for air circulation or set AC to 26°C to maintain energy efficiency.`;
-        } else {
-          indoorEn = `Optimal room environment. Keep main windows open to capture fresh natural airflow without turning on artificial cooling.`;
-        }
-      } else {
-        if (hum >= 80) {
-          indoorVi = `Độ ẩm indoor chạm mốc cao (${hum}%). Nên duy trì thông gió phòng hoặc bật chế độ DRY/hút ẩm để tránh đọng sương trên sàn và ngăn ngừa nấm mốc phát triển.`;
-        } else if (temp >= 28) {
-          indoorVi = `Nhiệt độ phòng khoảng ${temp}°C. Sử dụng quạt đối lưu không khí hoặc bật điều hòa mức 26°C để duy trì sự thoải mái và tiết kiệm điện.`;
-        } else {
-          indoorVi = `Không gian trong nhà thoáng đãng. Mở rộng rèm và cửa sổ để đón luồng khí tươi tự nhiên mà không cần dùng điều hòa cưỡng bức.`;
-        }
+      if (isNight && temp < 26) {
+        tag = currentLang === 'en' ? "Cool Night" : "Ban Đêm Mát Mẻ";
+        outdoor = currentLang === 'en' ? "Evening air is fresh and clear, great for a light walk." : "Buổi tối không khí thoáng đãng, thích hợp đi dạo nhẹ nhàng ngoài trời.";
+        indoor = currentLang === 'en' ? "Great indoor atmosphere for resting, keep fans on low." : "Không gian phòng thích hợp để nghỉ ngơi, bật quạt nhẹ nhàng thông thoáng.";
       }
 
-      return { tagVi, tagEn, outdoorVi, outdoorEn, indoorVi, indoorEn };
+      return {
+        tagVi: tag,
+        tagEn: tag,
+        outdoorVi: outdoor,
+        outdoorEn: outdoor,
+        indoorVi: indoor,
+        indoorEn: indoor
+      };
     }
 
-    function updateOuterAIAdvisor(item) {
+    async function updateOuterAIAdvisor(item) {
       document.getElementById('ai-temp-val').textContent = `${item.temp} °C`;
       document.getElementById('ai-humidity-val').textContent = `${item.humidity} %`;
 
-      const advice = computeAIAdvice(item.temp, item.humidity, currentLang === 'en' ? "Current" : "Hiện tại");
-      document.getElementById('ai-status-tag').textContent = currentLang === 'en' ? advice.tagEn : advice.tagVi;
+      const advice = await computeAIAdviceReal(item.temp, item.humidity, currentLang === 'en' ? "Current" : "Hiện tại", item.hour || new Date().getHours());
+      document.getElementById('ai-status-tag').textContent = advice.tagVi;
       document.getElementById('ai-outdoor-text').textContent = currentLang === 'en' ? advice.outdoorEn : advice.outdoorVi;
       document.getElementById('ai-indoor-text').textContent = currentLang === 'en' ? advice.indoorEn : advice.indoorVi;
     }
@@ -650,6 +620,9 @@
       applyPreset(0);
       fetchQuyNhonWeather();
       loadRealAiModels();
+      if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+      }
       setInterval(fetchQuyNhonWeather, 600000);
     });
   </script>
@@ -680,7 +653,7 @@
       const data = window.latestSensorData;
 
       if (type === 'env') {
-        title.textContent = currentLang === 'en' ? "Environment & Weather AI Advisor" : "Môi trường & Dự báo Thời tiết AI";
+        title.textContent = currentLang === 'en' ? "Environment & Weather Advisor" : "Môi trường & Tư vấn Thời tiết";
         generateDynamicForecastList(null);
         const forecastList = window.hourlyForecastData;
 
@@ -702,17 +675,12 @@
           </div>
 
           <div class="p-4 rounded-xl bg-slate-900/90 border border-sky-500/30 space-y-3 relative">
-            <div id="ai-loading-overlay" class="absolute inset-0 bg-slate-950/90 backdrop-blur-sm rounded-xl z-20 hidden flex flex-col items-center justify-center gap-2">
-              <div class="w-7 h-7 border-3 border-sky-400 border-t-transparent rounded-full animate-spin"></div>
-              <span id="ai-loading-text" class="text-xs font-semibold text-sky-300">${currentLang === 'en' ? 'AI is analyzing temperature data...' : 'AI đang phân tích nhiệt độ...'}</span>
-            </div>
-
             <div class="flex items-center justify-between border-b border-slate-800 pb-2">
               <div class="flex items-center gap-1.5 text-sky-400">
                 <i data-lucide="sparkles" class="w-4 h-4"></i>
-                <span class="text-xs font-bold uppercase tracking-wider">${currentLang === 'en' ? 'AI Advisory Preview' : 'Xem trước gợi ý AI'}</span>
+                <span class="text-xs font-bold uppercase tracking-wider">${currentLang === 'en' ? 'Advisory Preview' : 'Gợi ý thời tiết'}</span>
               </div>
-              <span id="drawer-ai-tag" class="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 text-[10px] font-semibold">Pleasant</span>
+              <span id="drawer-ai-tag" class="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 text-[10px] font-semibold">Climate Logic</span>
             </div>
 
             <div class="grid grid-cols-2 gap-2 text-xs bg-slate-950/60 p-2 rounded-lg border border-slate-800">
@@ -729,30 +697,13 @@
             <div class="space-y-2 text-xs">
               <div class="p-2 rounded-lg bg-slate-950/80 border border-slate-800">
                 <p class="font-semibold text-sky-300 mb-0.5 text-[11px]">${currentLang === 'en' ? 'Going Outdoors:' : 'Khi ra ngoài đường:'}</p>
-                <p id="drawer-ai-outdoor" class="text-slate-300 text-[11px] leading-relaxed">Analyzing selected slot...</p>
+                <p id="drawer-ai-outdoor" class="text-slate-300 text-[11px] leading-relaxed">Loading...</p>
               </div>
 
               <div class="p-2 rounded-lg bg-slate-950/80 border border-slate-800">
                 <p class="font-semibold text-emerald-300 mb-0.5 text-[11px]">${currentLang === 'en' ? 'Staying Indoors:' : 'Khi ở trong nhà:'}</p>
-                <p id="drawer-ai-indoor" class="text-slate-300 text-[11px] leading-relaxed">Analyzing selected slot...</p>
+                <p id="drawer-ai-indoor" class="text-slate-300 text-[11px] leading-relaxed">Loading...</p>
               </div>
-            </div>
-          </div>
-
-          <div class="p-4 rounded-xl bg-slate-900/90 border border-emerald-500/30 space-y-3">
-            <div class="flex items-center gap-2 text-emerald-400">
-              <i data-lucide="bot" class="w-4 h-4"></i>
-              <span class="text-xs font-bold uppercase tracking-wider">${currentLang === 'en' ? 'Weather & Health AI Assistant' : 'Trợ lý AI Thời tiết & Chăm sóc sức khỏe'}</span>
-            </div>
-
-            <div class="flex gap-2">
-              <input type="text" id="weather-qa-input" placeholder="${currentLang === 'en' ? 'Ask about weather, health tips, drinks...' : 'Hỏi về thời tiết, mẹo giải cảm, nước uống...'}" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-emerald-500">
-              <button onclick="askWeatherHealthAI()" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold transition">${currentLang === 'en' ? 'Send' : 'Gửi'}</button>
-            </div>
-
-            <div id="qa-response-box" class="hidden p-3 rounded-lg bg-slate-950/90 border border-emerald-500/20 text-xs space-y-1 animate-fadeIn">
-              <p class="font-semibold text-emerald-300 text-[11px]">${currentLang === 'en' ? 'Response from AI Advisor:' : 'Trả lời từ AI Advisor:'}</p>
-              <p id="qa-response-text" class="text-slate-300 leading-relaxed text-[11px]"></p>
             </div>
           </div>
         `;
@@ -791,7 +742,7 @@
           </div>
 
           <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
-            <div class="text-xs font-semibold text-slate-300">${currentLang === 'en' ? 'Register New Member Face (128 AI Vector Extraction):' : 'Đăng ký khuôn mặt mới (Trích xuất 128 AI Vector & Upload Drive):'}</div>
+            <div class="text-xs font-semibold text-slate-300">${currentLang === 'en' ? 'Register New Member Face (128 AI Vector Extraction):' : 'Đăng ký khuôn mặt mới:'}</div>
             
             <div class="flex gap-2">
               <input type="text" id="register-name-input" placeholder="${currentLang === 'en' ? 'Enter member name...' : 'Nhập tên thành viên...'}" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-100 focus:outline-none focus:border-sky-500">
@@ -850,17 +801,11 @@
       lucide.createIcons();
     }
 
-    function selectForecastItemWithDelay(idx) {
-      const overlay = document.getElementById('ai-loading-overlay');
-      if (overlay) overlay.classList.remove('hidden');
-
-      setTimeout(() => {
-        selectForecastItem(idx);
-        if (overlay) overlay.classList.add('hidden');
-      }, 6000);
+    async function selectForecastItemWithDelay(idx) {
+      await selectForecastItem(idx);
     }
 
-    function selectForecastItem(idx) {
+    async function selectForecastItem(idx) {
       const forecastList = window.hourlyForecastData.length > 0 ? window.hourlyForecastData : [];
       if (!forecastList[idx]) return;
 
@@ -876,51 +821,19 @@
       }
 
       const selectedItem = forecastList[idx];
-      const advice = computeAIAdvice(selectedItem.temp, selectedItem.humidity, selectedItem.label);
+      const advice = await computeAIAdviceReal(selectedItem.temp, selectedItem.humidity, selectedItem.label, selectedItem.hour || new Date().getHours());
 
-      document.getElementById('drawer-ai-tag').textContent = currentLang === 'en' ? advice.tagEn : advice.tagVi;
-      document.getElementById('drawer-ai-temp').textContent = `${selectedItem.temp} °C`;
-      document.getElementById('drawer-ai-hum').textContent = `${selectedItem.humidity} %`;
-      document.getElementById('drawer-ai-outdoor').textContent = currentLang === 'en' ? advice.outdoorEn : advice.outdoorVi;
-      document.getElementById('drawer-ai-indoor').textContent = currentLang === 'en' ? advice.indoorEn : advice.indoorVi;
-    }
+      const tagEl = document.getElementById('drawer-ai-tag');
+      const tempEl = document.getElementById('drawer-ai-temp');
+      const humEl = document.getElementById('drawer-ai-hum');
+      const outEl = document.getElementById('drawer-ai-outdoor');
+      const inEl = document.getElementById('drawer-ai-indoor');
 
-    function askWeatherHealthAI() {
-      const inputEl = document.getElementById('weather-qa-input');
-      const boxEl = document.getElementById('qa-response-box');
-      const textEl = document.getElementById('qa-response-text');
-
-      if (!inputEl || !inputEl.value.trim()) return;
-      const query = inputEl.value.trim().toLowerCase();
-
-      boxEl.classList.remove('hidden');
-      textEl.textContent = currentLang === 'en' ? "AI is thinking..." : "AI đang suy nghĩ câu trả lời...";
-
-      setTimeout(() => {
-        const validKeywords = ['thời tiết', 'nắng', 'mưa', 'nóng', 'lạnh', 'cảm', 'sức khỏe', 'uống', 'trà', 'gừng', 'tỏi', 'nước', 'áo', 'ốm', 'ho', 'uv', 'weather', 'cold', 'hot', 'rain', 'health', 'drink', 'water', 'tea'];
-        const isValid = validKeywords.some(kw => query.includes(kw));
-
-        if (!isValid) {
-          textEl.textContent = currentLang === 'en' 
-            ? "⚠️ I am the Weather & Health AI Advisor. I only assist with microclimate, weather, and personal health inquiries!" 
-            : "⚠️ Tôi là Trợ lý AI Thời tiết & Chăm sóc sức khỏe. Tôi chỉ hỗ trợ trả lời các vấn đề vi khí hậu, thời tiết và phương pháp giữ gìn sức khỏe!";
-          return;
-        }
-
-        if (query.includes('cảm') || query.includes('ho') || query.includes('lạnh') || query.includes('cold')) {
-          textEl.textContent = currentLang === 'en'
-            ? "🍵 Health Tip: If catching a cold from rain, boil fresh ginger with honey and drink immediately to warm up respiratory airways!"
-            : "🍵 Lời khuyên sức khỏe: Nếu chớm bị cảm lạnh đi mưa, hãy giã nát 1 nhánh gừng tươi đun nước ấm cùng mật ong uống ngay. Gừng giúp phát tán phong hàn và làm ấm phế quản rất nhanh!";
-        } else if (query.includes('nóng') || query.includes('nước') || query.includes('uống') || query.includes('hot') || query.includes('drink')) {
-          textEl.textContent = currentLang === 'en'
-            ? "🍋 Health Tip: Extreme heat causes electrolyte loss. Drink fresh coconut water or salted lemon juice. Avoid ice-cold water to protect throat!"
-            : "🍋 Lời khuyên sức khỏe: Nắng nóng làm mất điện giải, hãy dùng nước dừa tươi hoặc chanh muối bù khoáng. Hạn chế uống nước đá lạnh buốt gây sốc nhiệt họng!";
-        } else {
-          textEl.textContent = currentLang === 'en'
-            ? "☀️ Stay healthy by balancing indoor and outdoor temperatures. Wear breathable clothes and drink 2L of water daily!"
-            : "☀️ Giữ gìn sức khỏe mùa này cần chú ý cân bằng nhiệt độ phòng và ngoài trời. Hãy chọn trang phục thấm hút mồ hôi và duy trì thói quen uống đủ 2L nước mỗi ngày!";
-        }
-      }, 1500);
+      if (tagEl) tagEl.textContent = advice.tagVi;
+      if (tempEl) tempEl.textContent = `${selectedItem.temp} °C`;
+      if (humEl) humEl.textContent = `${selectedItem.humidity} %`;
+      if (outEl) outEl.textContent = advice.outdoorVi;
+      if (inEl) inEl.textContent = advice.indoorVi;
     }
 
     async function turnOnCamera() {
@@ -991,7 +904,6 @@
 
     function applySmartAiLightingCorrection(ctx, width, height, videoEl) {
       if (!ctx || width === 0 || height === 0 || !videoEl) return;
-      
       try {
         const imgData = ctx.getImageData(0, 0, width, height);
         const data = imgData.data;
@@ -1266,14 +1178,6 @@
           <button onclick="deleteMember(${m.id})" class="text-red-400 hover:text-red-300 font-bold px-1 text-[10px]">${currentLang === 'en' ? 'Delete' : 'Xóa CSDL'}</button>
         </div>
       `).join('');
-    }
-
-    function triggerMobilePushNotification(msg) {
-      const now = Date.now();
-      if (now - lastNotificationTime >= 5000) {
-        lastNotificationTime = now;
-        alert(`📱 [SECURITY ALARM]\n\n${msg}\nTime: ${new Date().toLocaleTimeString()}`);
-      }
     }
 
     function setDoorState(state, forceRender = false) {
